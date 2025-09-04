@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MovieHub - Add Review</title>
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: #333;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .header {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px 30px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .header h1 {
+        color: white;
+        font-size: 2.2em;
+        font-weight: 300;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .header p {
+        color: rgba(255, 255, 255, 0.8);
+        text-align: center;
+        font-size: 1.1em;
+    }
+
+    .form-container {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .form-title {
+        font-size: 1.8em;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 1em;
+    }
+
+    .form-label.required::after {
+        content: ' *';
+        color: #e74c3c;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e8e8e8;
+        border-radius: 10px;
+        font-size: 1em;
+        font-family: inherit;
+        transition: all 0.3s ease;
+        background: #f8f9ff;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+    }
+
+    select.form-control {
+        cursor: pointer;
+        padding-right: 45px;
+        appearance: none;
+    }
+
+    select.form-control::after {
+        content: '▼';
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        pointer-events: none;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+        line-height: 1.6;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .form-group-container {
+        background: #f8f9ff;
+        border: 2px solid #e8e8ff;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        color: #667eea;
+        font-size: 1.3em;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e8e8ff;
+    }
+
+    .form-help {
+        color: #666;
+        font-size: 0.85em;
+        margin-top: 5px;
+        display: block;
+        font-style: italic;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 35px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.3s ease;
+        min-width: 150px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.2);
+        transition: left 0.3s ease;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, #5a67d8, #6b46c1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+        color: white;
+        box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(45deg, #7f8c8d, #6c7b7d);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+    }
+
+    .error-message {
+        color: #e74c3c;
+        font-size: 0.9em;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .form-control.error {
+        border-color: #e74c3c;
+        background-color: #fff5f5;
+    }
+
+    .readonly-field {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+    .form-text {
+        font-size: 0.875em;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .success-message {
+        background: linear-gradient(45deg, #2ecc71, #27ae60);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            margin: 10px;
+        }
+
+        .form-container {
+            padding: 25px;
+        }
+
+        .header {
+            padding: 15px 20px;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn {
+            width: 200px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .form-group-container {
+            padding: 20px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        body {
+            padding: 10px;
+        }
+
+        .form-container {
+            padding: 20px;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+        }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Add Movie Review</h1>
+    <p>Share your thoughts and rate your favorite movies</p>
+  </div>
+
+  <div th:if="${successMessage}" class="success-message" th:text="${successMessage}">
+    Review added successfully!
+  </div>
+
+  <div class="form-container">
+    <h2 class="form-title">Write Your Review</h2>
+
+    <form th:action="@{/reviews/create}" th:object="${review}" method="post">
+      <div class="form-group">
+        <label for="movieId" class="form-label required">Movie Name</label>
+        <input type="text"
+               th:field="*{movieId}"
+               id="movieId"
+               class="form-control"
+               th:readonly="${movieId != null and !#strings.isEmpty(movieId)}"
+               th:classappend="${movieId != null and !#strings.isEmpty(movieId)} ? 'readonly-field' : ''"
+               placeholder="Enter the movie name"
+               maxlength="200"
+               required />
+        <span th:if="${#fields.hasErrors('movieId')}"
+              class="error-message"
+              th:errors="*{movieId}">Movie name error</span>
+        <small th:if="${movieId != null and !#strings.isEmpty(movieId)}" 
+               class="form-text text-muted">Movie name is pre-filled. You can still change it if needed.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="rating" class="form-label required">Rating</label>
+        <select th:field="*{rating}" id="rating" class="form-control" required>
+          <option value="">Select rating...</option>
+          <option value="1">1 Star - Poor</option>
+          <option value="2">2 Stars - Fair</option>
+          <option value="3">3 Stars - Good</option>
+          <option value="4">4 Stars - Very Good</option>
+          <option value="5">5 Stars - Excellent</option>
+        </select>
+        <span th:if="${#fields.hasErrors('rating')}"
+              class="error-message"
+              th:errors="*{rating}">Rating error</span>
+      </div>
+
+      <div class="form-group">
+        <label for="comment" class="form-label required">Review Comment</label>
+        <textarea th:field="*{comment}"
+                  id="comment"
+                  class="form-control"
+                  placeholder="Write your detailed review here... What did you like or dislike about the movie?"
+                  maxlength="1000"
+                  required></textarea>
+        <span th:if="${#fields.hasErrors('comment')}"
+              class="error-message"
+              th:errors="*{comment}">Review comment error</span>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Submit Review</button>
+        <a th:href="@{/movie/all}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>
