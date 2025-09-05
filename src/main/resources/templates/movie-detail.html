@@ -387,13 +387,13 @@
             <div class="movie-info" style="--delay: 1">
                 <span class="movie-info-label">Genre</span>
                 <div class="genre-tags">
-                    <!-- Handle both List<String> and String formats -->
-                    <th:block th:if="${movie.genre instanceof T(java.util.List)}">
-                        <span class="genre-tag" th:each="genre : ${movie.genre}" th:text="${genre}">Action</span>
-                    </th:block>
-                    <th:block th:unless="${movie.genre instanceof T(java.util.List)}">
+                    <!-- Handle genre as comma-separated string -->
+                    <th:block th:if="${movie.genre != null}">
                         <span class="genre-tag" th:each="genre : ${#strings.arraySplit(movie.genre, ',')}"
                               th:text="${#strings.trim(genre)}">Action</span>
+                    </th:block>
+                    <th:block th:if="${movie.genre == null}">
+                        <span class="genre-tag">Unknown</span>
                     </th:block>
                 </div>
             </div>
@@ -406,12 +406,12 @@
             <div class="movie-info" style="--delay: 3">
                 <span class="movie-info-label">Average Rating</span>
                 <span class="rating" th:classappend="${movie.averageRating == null ? 'not-rated' : ''}"
-                      th:text="${movie.averageRating} ?: 'Not rated yet'">9.0</span>
+                      th:text="${movie.averageRating != null ? movie.averageRating : 'Not rated yet'}">9.0</span>
             </div>
         </div>
 
         <div class="actions">
-            <a th:href="@{'/movie/edit/' + ${movie.movieId}}" class="btn btn-warning">Edit Movie</a>
+            <a th:href="@{/movie/edit/{id}(id=${movie.movieId})}" class="btn btn-warning">Edit Movie</a>
             <a th:href="@{/movie/all}" class="btn btn-primary">Back to Movies</a>
         </div>
     </div>
@@ -426,9 +426,14 @@
                 <div class="review-header">
                     <div class="review-rating">
                         <div class="stars">
-                            <span th:each="i : ${#numbers.sequence(1, 5)}">
-                                <span th:if="${i <= review.rating}">★</span>
-                                <span th:if="${i > review.rating}" style="color: #ddd;">★</span>
+                            <!-- Simplified star display -->
+                            <span th:switch="${review.rating}">
+                                <span th:case="1">★☆☆☆☆</span>
+                                <span th:case="2">★★☆☆☆</span>
+                                <span th:case="3">★★★☆☆</span>
+                                <span th:case="4">★★★★☆</span>
+                                <span th:case="5">★★★★★</span>
+                                <span th:case="*">☆☆☆☆☆</span>
                             </span>
                         </div>
                         <span class="rating-number" th:text="${review.rating} + '/5'">5/5</span>
