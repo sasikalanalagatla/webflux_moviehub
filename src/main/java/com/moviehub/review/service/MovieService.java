@@ -13,4 +13,5 @@ public interface MovieService {
     Mono<Void> deleteMovie(String id);
     Mono<MovieResponseDto> updateMovieRating(String movieId, Double newRating); // New method
     Flux<MovieResponseDto> findMoviesByGenre(String genre); // New method
+    Mono<MovieResponseDto> createMovieFromTmdbSearch(String query, Integer year);
 }

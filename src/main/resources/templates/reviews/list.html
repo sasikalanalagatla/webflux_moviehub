@@ -281,7 +281,7 @@
 
   <div th:if="${reviews != null and !#lists.isEmpty(reviews)}" class="reviews-grid">
     <div th:each="review : ${reviews}" class="review-card">
-      <div class="movie-name" th:text="${review.movieId}">Movie Name</div>
+      <div class="movie-name" th:text="${movieTitles[review.movieId] != null ? movieTitles[review.movieId] : review.movieId}">Movie</div>
 
       <div class="rating">
         <div class="stars">

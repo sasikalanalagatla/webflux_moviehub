@@ -116,7 +116,7 @@
             </div>
             <div class="search-group">
                 <label class="search-label">Filter by Year:</label>
-                <input type="number" name="year" class="search-input" placeholder="Release year" min="1900" max="2030"
+                <input type="number" name="year" class="search-input" placeholder="Release year"
                        th:value="${yearFilter != null ? yearFilter : ''}">
             </div>
             <div class="search-group">
@@ -128,14 +128,15 @@
         </form>
     </div>
 
-    <!-- Search Results Info -->
-    <div th:if="${(searchQuery != null and !#strings.isEmpty(searchQuery)) or (genreFilter != null and !#strings.isEmpty(genreFilter)) or (yearFilter != null)}" class="search-results">
-        <span th:if="${searchQuery != null and !#strings.isEmpty(searchQuery)}">Showing results for "<strong th:text="${searchQuery}"></strong>"</span>
-        <span th:if="${genreFilter != null and !#strings.isEmpty(genreFilter)}">Filtered by genre: <strong th:text="${genreFilter}"></strong></span>
-        <span th:if="${yearFilter != null}">Filtered by year: <strong th:text="${yearFilter}"></strong></span>
+    <!-- Search Results Info removed per request -->
+
+    <div class="header-actions" style="margin-bottom: 10px;">
+        <a href="#" class="btn btn-primary" onclick="filterSection('all'); return false;">All</a>
+        <a href="#" class="btn btn-success" onclick="filterSection('released'); return false;">Released</a>
+        <a href="#" class="btn btn-warning" onclick="filterSection('upcoming'); return false;">Upcoming</a>
     </div>
 
-    <div th:if="${movies != null and !#lists.isEmpty(movies)}">
+    <div id="section-released" class="movie-section" th:if="${releasedPaged != null and !#lists.isEmpty(releasedPaged)}">
         <table class="movie-table">
             <thead>
             <tr>
@@ -147,7 +148,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="movie : ${movies}">
+            <tr th:each="movie : ${releasedPaged}">
                 <td class="movie-title-cell" th:text="${movie.title}">Movie Title</td>
                 <td>
                     <div class="genre-tags">
@@ -172,14 +173,139 @@
             </tr>
             </tbody>
         </table>
+        <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;">
+            <a th:if="${releasedPage > 0}" th:href="@{'/movie/all'(rpage=${releasedPage-1},size=${size},search=${searchQuery},genre=${genreFilter},year=${yearFilter})}" class="btn btn-primary">Prev</a>
+            <span>Page <span th:text="${releasedPage + 1}">1</span> / <span th:text="${releasedTotalPages}">1</span></span>
+            <a th:if="${releasedPage + 1 < releasedTotalPages}" th:href="@{'/movie/all'(rpage=${releasedPage+1},size=${size},search=${searchQuery},genre=${genreFilter},year=${yearFilter})}" class="btn btn-primary">Next</a>
+        </div>
     </div>
 
-    <div th:if="${movies == null or #lists.isEmpty(movies)}" class="no-movies">
+    <div id="section-upcoming" class="movie-section" th:if="${upcomingPaged != null and !#lists.isEmpty(upcomingPaged)}">
+        <table class="movie-table">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Genre</th>
+                <th>Release Year</th>
+                <th>Rating</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="movie : ${upcomingPaged}">
+                <td class="movie-title-cell" th:text="${movie.title}">Movie Title</td>
+                <td>
+                    <div class="genre-tags">
+                        <span class="genre-tag" th:each="genre : ${movie.genre}" th:text="${genre}">Action</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="year-badge" th:text="${movie.releaseYear}">2020</span>
+                </td>
+                <td>
+                    <span class="rating" th:text="${movie.averageRating != null && movie.averageRating > 0 ? #numbers.formatDecimal(movie.averageRating, 1, 1) : 'N/A'}">8.5</span>
+                </td>
+                <td class="actions-cell">
+                    <a th:href="@{'/movie/' + ${movie.movieId}}" class="btn btn-primary">View</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;">
+            <a th:if="${upcomingPage > 0}" th:href="@{'/movie/all'(upage=${upcomingPage-1},size=${size},search=${searchQuery},genre=${genreFilter},year=${yearFilter})}" class="btn btn-primary">Prev</a>
+            <span>Page <span th:text="${upcomingPage + 1}">1</span> / <span th:text="${upcomingTotalPages}">1</span></span>
+            <a th:if="${upcomingPage + 1 < upcomingTotalPages}" th:href="@{'/movie/all'(upage=${upcomingPage+1},size=${size},search=${searchQuery},genre=${genreFilter},year=${yearFilter})}" class="btn btn-primary">Next</a>
+        </div>
+    </div>
+
+    <div id="section-all" class="movie-section" th:if="${pagedMovies != null and !#lists.isEmpty(pagedMovies)}">
+        <table class="movie-table">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Genre</th>
+                <th>Release Year</th>
+                <th>Rating</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="movie : ${pagedMovies}">
+                <td class="movie-title-cell" th:text="${movie.title}">Movie Title</td>
+                <td>
+                    <div class="genre-tags">
+                        <span class="genre-tag" th:each="genre : ${movie.genre}" th:text="${genre}">Action</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="year-badge" th:text="${movie.releaseYear}">2020</span>
+                </td>
+                <td>
+                    <span class="rating" th:text="${movie.averageRating != null && movie.averageRating > 0 ? #numbers.formatDecimal(movie.averageRating, 1, 1) : 'N/A'}">8.5</span>
+                </td>
+                <td>
+                    <span th:text="${movie.released} ? 'Released' : 'Upcoming'">Released</span>
+                </td>
+                <td class="actions-cell">
+                    <a th:href="@{'/movie/' + ${movie.movieId}}" class="btn btn-primary">View</a>
+                    <a th:href="@{'/movie/edit/' + ${movie.movieId}}" class="btn btn-warning">Edit</a>
+                    <a th:if="${movie.released}" th:href="@{'/reviews/create?movieId=' + ${movie.movieId}}" class="btn btn-info">Review</a>
+                    <form th:action="@{'/movie/delete/' + ${movie.movieId}}" method="post" style="display: inline-block;">
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Are you sure you want to delete this movie?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;">
+            <a th:if="${page > 0}" th:href="@{'/movie/all'(page=${page-1},size=${size},search=${searchQuery},genre=${genreFilter},year=${yearFilter})}" class="btn btn-primary">Prev</a>
+            <span>Page <span th:text="${page + 1}">1</span> / <span th:text="${totalPages}">1</span></span>
+            <a th:if="${page + 1 < totalPages}" th:href="@{'/movie/all'(page=${page+1},size=${size},search=${searchQuery},genre=${genreFilter},year=${yearFilter})}" class="btn btn-primary">Next</a>
+        </div>
+    </div>
+
+    <div id="section-empty" th:if="${(releasedMovies == null or #lists.isEmpty(releasedMovies)) and (upcomingMovies == null or #lists.isEmpty(upcomingMovies)) and (allMovies == null or #lists.isEmpty(allMovies))}" class="no-movies">
         <h3>No Movies Found</h3>
         <p th:if="${(searchQuery != null and !#strings.isEmpty(searchQuery)) or (genreFilter != null and !#strings.isEmpty(genreFilter)) or (yearFilter != null)}">No movies match your search criteria. Try different filters or add a new movie!</p>
         <p th:unless="${(searchQuery != null and !#strings.isEmpty(searchQuery)) or (genreFilter != null and !#strings.isEmpty(genreFilter)) or (yearFilter != null)}">Start building your movie collection by adding your first movie!</p>
         <a href="/movie/add" class="btn btn-success">Add Your First Movie</a>
     </div>
+
+    <script>
+        function filterSection(which) {
+            const released = document.getElementById('section-released');
+            const upcoming = document.getElementById('section-upcoming');
+            const all = document.getElementById('section-all');
+            const empty = document.getElementById('section-empty');
+            function show(el, on) { if (el) el.style.display = on ? '' : 'none'; }
+            if (which === 'released') {
+                show(all, false); show(released, true); show(upcoming, false); show(empty, false);
+            } else if (which === 'upcoming') {
+                show(all, false); show(released, false); show(upcoming, true); show(empty, false);
+            } else {
+                show(all, true); show(released, false); show(upcoming, false); show(empty, false);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('rpage')) {
+                filterSection('released');
+            } else if (params.has('upage')) {
+                filterSection('upcoming');
+            } else {
+                // show any non-empty section by priority: all -> released -> upcoming
+                const all = document.getElementById('section-all');
+                const released = document.getElementById('section-released');
+                const upcoming = document.getElementById('section-upcoming');
+                if (all && all.querySelector('tbody tr')) filterSection('all');
+                else if (released && released.querySelector('tbody tr')) filterSection('released');
+                else if (upcoming && upcoming.querySelector('tbody tr')) filterSection('upcoming');
+                else filterSection('all');
+            }
+        });
+    </script>
 </div>
 
 <footer>

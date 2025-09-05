@@ -226,7 +226,7 @@
   </div>
 
   <div class="review-detail" th:if="${review}">
-    <h2 class="movie-title" th:text="${review.movieId}">Movie Name</h2>
+    <h2 class="movie-title" th:text="${movieTitle != null ? movieTitle : review.movieId}">Movie</h2>
 
     <div class="rating-section">
       <div class="stars">

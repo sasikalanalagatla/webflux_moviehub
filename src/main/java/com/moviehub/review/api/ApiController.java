@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
@@ -42,6 +41,13 @@ public class ApiController {
     @PostMapping("/movies")
     public Mono<ResponseEntity<MovieResponseDto>> createMovie(@Valid @RequestBody MovieRequestDto movieRequest) {
         return movieService.createMovie(movieRequest)
+                .map(movie -> ResponseEntity.status(HttpStatus.CREATED).body(movie));
+    }
+
+    @PostMapping("/movies/tmdb")
+    public Mono<ResponseEntity<MovieResponseDto>> createMovieFromTmdb(@RequestParam("query") String query,
+                                                                      @RequestParam(value = "year", required = false) Integer year) {
+        return movieService.createMovieFromTmdbSearch(query, year)
                 .map(movie -> ResponseEntity.status(HttpStatus.CREATED).body(movie));
     }
 
@@ -113,7 +119,6 @@ public class ApiController {
         if (genre != null) {
             return movieService.findMoviesByGenre(genre);
         } else if (title != null) {
-            // You would implement this in your service
             return movieService.getALlMovies()
                     .filter(movie -> movie.getTitle().toLowerCase().contains(title.toLowerCase()));
         } else if (year != null) {

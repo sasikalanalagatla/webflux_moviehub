@@ -412,7 +412,6 @@
 
         <div class="actions">
             <a th:href="@{'/movie/edit/' + ${movie.movieId}}" class="btn btn-warning">Edit Movie</a>
-            <a th:href="@{'/reviews/create?movieName=' + ${movie.title}}" class="btn btn-info">Add Review</a>
             <a th:href="@{/movie/all}" class="btn btn-primary">Back to Movies</a>
         </div>
     </div>
@@ -442,8 +441,7 @@
         </div>
 
         <div th:if="${reviews == null or #lists.isEmpty(reviews)}" class="no-reviews">
-            <p>No reviews yet for this movie. Be the first to write one!</p>
-            <a th:href="@{'/reviews/create?movieName=' + ${movie.title}}" class="btn btn-info" style="margin-top: 20px;">Write First Review</a>
+            <p>No reviews yet for this movie.</p>
         </div>
     </div>
 </div>
