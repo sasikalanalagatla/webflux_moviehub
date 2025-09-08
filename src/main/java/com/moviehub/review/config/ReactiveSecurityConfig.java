@@ -4,12 +4,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+
+import java.time.Duration;
+import java.util.List;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -23,22 +27,36 @@ public class ReactiveSecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse())
+                )
+                .cors(cors -> {})
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'"))
+                        .referrerPolicy(referrer -> referrer.policy(org.springframework.security.web.server.header.ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.NO_REFERRER))
+                        .frameOptions(frame -> frame.mode(org.springframework.security.web.server.header.XFrameOptionsServerHttpHeadersWriter.Mode.SAMEORIGIN))
+                        .xssProtection(xss -> xss.block(true))
+                        .hsts(hsts -> hsts.includeSubDomains(true).maxAge(Duration.ofDays(180)))
+                )
                 .authorizeExchange(exchanges -> exchanges
-                        // Public access
                         .pathMatchers("/", "/movie/", "/movie/all", "/movie/{id}").permitAll()
                         .pathMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .pathMatchers("/auth/login", "/auth/register").permitAll()
-
-                        // Admin-only paths
+                        .pathMatchers("/api/public/**").permitAll()
                         .pathMatchers("/movie/add", "/movie/edit/**", "/movie/delete/**").hasRole("ADMIN")
-
-                        // All other requests need authentication
                         .anyExchange().authenticated()
                 )
                 .formLogin(formLogin -> formLogin
                         .loginPage("/auth/login")
+                        .authenticationFailureHandler((exchange, exception) -> {
+                            exchange.getExchange().getResponse().setStatusCode(
+                                    org.springframework.http.HttpStatus.FOUND);
+                            exchange.getExchange().getResponse().getHeaders()
+                                    .add("Location", "/auth/login?error");
+                            return reactor.core.publisher.Mono.empty();
+                        })
                         .authenticationSuccessHandler((exchange, authentication) -> {
-                            // Redirect to home page after successful login
                             exchange.getExchange().getResponse().setStatusCode(
                                     org.springframework.http.HttpStatus.FOUND);
                             exchange.getExchange().getResponse().getHeaders()
@@ -49,7 +67,6 @@ public class ReactiveSecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
                         .logoutSuccessHandler((exchange, authentication) -> {
-                            // Redirect to home page after logout
                             exchange.getExchange().getResponse().setStatusCode(
                                     org.springframework.http.HttpStatus.FOUND);
                             exchange.getExchange().getResponse().getHeaders()
@@ -57,24 +74,18 @@ public class ReactiveSecurityConfig {
                             return reactor.core.publisher.Mono.empty();
                         })
                 )
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for simplicity
                 .build();
     }
 
     @Bean
-    public MapReactiveUserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("admin123"))
-                .roles("ADMIN", "USER")
-                .build();
-
-        UserDetails user = User.builder()
-                .username("user")
-                .password(passwordEncoder.encode("user123"))
-                .roles("USER")
-                .build();
-
-        return new MapReactiveUserDetailsService(admin, user);
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "X-CSRF-TOKEN"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
