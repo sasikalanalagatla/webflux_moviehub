@@ -4,6 +4,7 @@ import com.moviehub.review.dto.MovieRequestDto;
 import com.moviehub.review.dto.MovieResponseDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.ChannelPipelineConfigurer;
 
 public interface MovieService {
     Mono<MovieResponseDto> createMovie(MovieRequestDto movieRequestDto);
@@ -14,4 +15,5 @@ public interface MovieService {
     Mono<MovieResponseDto> updateMovieRating(String movieId, Double newRating); // New method
     Flux<MovieResponseDto> findMoviesByGenre(String genre); // New method
     Mono<MovieResponseDto> createMovieFromTmdbSearch(String query, Integer year);
+    Mono<MovieResponseDto> enrichMovieWithTmdbData(String movieId);  // ✅ Now matches implementation
 }

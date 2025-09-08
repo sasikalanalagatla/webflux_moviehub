@@ -1,7 +1,9 @@
 package com.moviehub.review.controller;
 
+import com.moviehub.review.dto.CastMemberDto;
 import com.moviehub.review.dto.MovieRequestDto;
 import com.moviehub.review.dto.MovieResponseDto;
+import com.moviehub.review.dto.OttPlatformDto;
 import com.moviehub.review.service.MovieService;
 import com.moviehub.review.service.ReviewService;
 import jakarta.validation.Valid;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -112,6 +115,44 @@ public class MovieViewController {
                 .doOnNext(movie -> {
                     logger.debug("Retrieved movie: {}", movie.getTitle());
                     model.addAttribute("movie", movie);
+
+                    // **ADD THIS CREW DEBUGGING**
+                    if (movie.getCrew() != null) {
+                        logger.info("CONTROLLER - Crew data exists for movie: {}", movie.getTitle());
+                        logger.info("CONTROLLER - Directors: {}",
+                                movie.getCrew().getDirectors() != null ? movie.getCrew().getDirectors().size() : "null");
+                        logger.info("CONTROLLER - Producers: {}",
+                                movie.getCrew().getProducers() != null ? movie.getCrew().getProducers().size() : "null");
+                        logger.info("CONTROLLER - Writers: {}",
+                                movie.getCrew().getWriters() != null ? movie.getCrew().getWriters().size() : "null");
+                        logger.info("CONTROLLER - Music Directors: {}",
+                                movie.getCrew().getMusicDirectors() != null ? movie.getCrew().getMusicDirectors().size() : "null");
+                    } else {
+                        logger.warn("CONTROLLER - Movie {} has NULL crew data", movie.getTitle());
+                    }
+
+                    // Add cast filtering (existing code)
+                    if (movie.getCast() != null && !movie.getCast().isEmpty()) {
+                        model.addAttribute("heroes", movie.getCast().stream()
+                                .filter(c -> "Hero".equals(c.getRole())).collect(Collectors.toList()));
+                        model.addAttribute("heroines", movie.getCast().stream()
+                                .filter(c -> "Heroine".equals(c.getRole())).collect(Collectors.toList()));
+                        model.addAttribute("supportingCast", movie.getCast().stream()
+                                .filter(c -> "Supporting".equals(c.getRole())).collect(Collectors.toList()));
+                    } else {
+                        model.addAttribute("heroes", List.of());
+                        model.addAttribute("heroines", List.of());
+                        model.addAttribute("supportingCast", List.of());
+                    }
+
+                    // Add OTT platform grouping (existing code)
+                    if (movie.getOttPlatforms() != null && !movie.getOttPlatforms().isEmpty()) {
+                        Map<String, List<OttPlatformDto>> platformsByType = movie.getOttPlatforms().stream()
+                                .collect(Collectors.groupingBy(OttPlatformDto::getSubscriptionType));
+                        model.addAttribute("ottPlatforms", platformsByType);
+                    } else {
+                        model.addAttribute("ottPlatforms", Map.of());
+                    }
                 })
                 .flatMap(movie -> reviewService.getReviewsByMovieId(movieId)
                         .collectList()
@@ -125,6 +166,8 @@ public class MovieViewController {
                     return handleError(model, "Movie not found: " + error.getMessage());
                 });
     }
+
+
 
     @PostMapping("/save")
     public Mono<String> createMovie(@Valid @ModelAttribute MovieRequestDto movieRequestDto,
@@ -191,6 +234,74 @@ public class MovieViewController {
                 .onErrorReturn("redirect:/movie/all");
     }
 
+    @GetMapping("/{movieId}/detailed")
+    public Mono<String> getDetailedMovieById(@PathVariable String movieId, Model model) {
+        logger.info("Fetching detailed movie information for ID: {}", movieId);
+
+        return movieService.getMovieById(movieId)
+                .doOnNext(movie -> {
+                    logger.debug("Retrieved movie: {}", movie.getTitle());
+                    model.addAttribute("movie", movie);
+
+                    // Add basic cast information if available
+                    if (movie.getCast() != null && !movie.getCast().isEmpty()) {
+                        List<CastMemberDto> heroes = movie.getCast().stream()
+                                .filter(c -> "Hero".equals(c.getRole()))
+                                .collect(Collectors.toList());
+                        List<CastMemberDto> heroines = movie.getCast().stream()
+                                .filter(c -> "Heroine".equals(c.getRole()))
+                                .collect(Collectors.toList());
+                        List<CastMemberDto> supporting = movie.getCast().stream()
+                                .filter(c -> "Supporting".equals(c.getRole()))
+                                .collect(Collectors.toList());
+
+                        model.addAttribute("heroes", heroes);
+                        model.addAttribute("heroines", heroines);
+                        model.addAttribute("supportingCast", supporting);
+                    }
+
+                    // Add OTT platform information if available
+                    if (movie.getOttPlatforms() != null && !movie.getOttPlatforms().isEmpty()) {
+                        Map<String, List<OttPlatformDto>> platformsByType = movie.getOttPlatforms().stream()
+                                .collect(Collectors.groupingBy(OttPlatformDto::getSubscriptionType));
+                        model.addAttribute("ottPlatforms", platformsByType);
+                    }
+                })
+                .flatMap(movie -> reviewService.getReviewsByMovieId(movieId)
+                        .collectList()
+                        .doOnNext(reviews -> {
+                            logger.debug("Retrieved {} reviews for movie {}", reviews.size(), movieId);
+                            model.addAttribute("reviews", reviews);
+                        }))
+                .then(Mono.just("movie-detailed"))
+                .onErrorResume(error -> {
+                    logger.error("Error fetching detailed movie {}: {}", movieId, error.getMessage(), error);
+                    return handleError(model, "Movie not found: " + error.getMessage());
+                });
+    }
+
+
+    @PostMapping("/{movieId}/enrich")
+    public Mono<String> enrichMovieWithTmdbData(@PathVariable String movieId) {
+        logger.info("Manually enriching movie {} with TMDb data", movieId);
+
+        return movieService.getMovieById(movieId)
+                .doOnNext(movie -> logger.debug("Found movie to enrich: {}", movie.getTitle()))
+                .flatMap(movie -> {
+                    // For now, we'll just update the movie with some mock enriched data
+                    // Later you can implement actual TMDb integration
+                    return movieService.updateMovieRating(movieId, movie.getAverageRating());
+                })
+                .doOnSuccess(enrichedMovie -> logger.info("Successfully enriched movie: {}", enrichedMovie.getTitle()))
+                .then(Mono.just("redirect:/movie/" + movieId + "/detailed"))
+                .onErrorResume(error -> {
+                    logger.error("Failed to enrich movie {}: {}", movieId, error.getMessage(), error);
+                    return Mono.just("redirect:/movie/all?error=enrichment-failed");
+                });
+    }
+
+
+
     private boolean matchesFilters(MovieResponseDto movie, String search, String genre, Integer year) {
         String trimmedSearch = trimString(search);
         String trimmedGenre = trimString(genre);
@@ -203,7 +314,7 @@ public class MovieViewController {
         }
 
         if (trimmedGenre != null) {
-            String genreString = movie.getGenre();
+            String genreString = String.valueOf(movie.getGenre());
             if (genreString == null || genreString.trim().isEmpty() ||
                     !genreString.toLowerCase().contains(trimmedGenre.toLowerCase())) {
                 return false;

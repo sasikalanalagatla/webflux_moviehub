@@ -1,110 +1,191 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MovieHub - All Reviews</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #0f0f23;
+        color: white;
+        line-height: 1.6;
+        min-height: 100vh;
     }
 
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px;
-        color: #333;
+    .header {
+        background: linear-gradient(135deg, rgba(30, 60, 114, 0.9), rgba(42, 82, 152, 0.9));
+        backdrop-filter: blur(10px);
+        padding: 1rem 0;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    }
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .logo {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ff6b6b;
+        text-decoration: none;
+    }
+    .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+    }
+    .nav-links a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+    .nav-links a:hover, .nav-links a.active {
+        background: rgba(255, 107, 107, 0.2);
+        color: #ff6b6b;
     }
 
     .container {
         max-width: 1200px;
         margin: 0 auto;
+        padding: 2rem;
     }
 
-    .header {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 15px;
-        padding: 20px 30px;
-        margin-bottom: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+    .page-header {
         text-align: center;
+        margin-bottom: 3rem;
+    }
+    .page-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+    .page-subtitle {
+        font-size: 1.3rem;
+        opacity: 0.8;
+        color: #a0a0a0;
+        margin-bottom: 2rem;
     }
 
-    .header h1 {
-        color: white;
-        font-size: 2.2em;
-        font-weight: 300;
-        margin-bottom: 10px;
+    .page-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-bottom: 3rem;
+        flex-wrap: wrap;
     }
-
-    .header p {
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 1.1em;
-    }
-
-    .actions {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
     .btn {
-        display: inline-block;
-        padding: 12px 24px;
+        padding: 1rem 2rem;
         border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        font-size: 1em;
+        border-radius: 50px;
+        font-size: 1.1rem;
         font-weight: 600;
+        cursor: pointer;
         text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 160px;
+        justify-content: center;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+    }
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
+    }
+
+    .alert {
+        padding: 1rem 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-weight: 500;
+    }
+    .alert-success {
+        background: rgba(34, 197, 94, 0.2);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+    }
+    .alert-info {
+        background: rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #3b82f6;
+    }
+
+    .reviews-stats {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 3rem;
+        flex-wrap: wrap;
+    }
+    .stat-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 1.5rem 2rem;
         text-align: center;
-        transition: all 0.3s ease;
         min-width: 150px;
     }
-
-    .btn-primary {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
-
-    .btn-primary:hover {
-        background: linear-gradient(45deg, #5a67d8, #6b46c1);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-secondary {
-        background: linear-gradient(45deg, #95a5a6, #7f8c8d);
-        color: white;
-        box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
-    }
-
-    .btn-secondary:hover {
-        background: linear-gradient(45deg, #7f8c8d, #6c7b7d);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 0.5rem;
     }
 
     .reviews-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 25px;
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        gap: 2rem;
     }
-
     .review-card {
-        background: white;
-        border-radius: 15px;
-        padding: 25px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
     }
-
     .review-card::before {
         content: '';
         position: absolute;
@@ -112,202 +193,373 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: linear-gradient(90deg, #667eea, #764ba2);
+        background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
     }
-
     .review-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     }
 
-    .movie-name {
-        font-size: 1.3em;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
-
-    .rating {
+    .review-header {
         display: flex;
-        align-items: center;
-        margin-bottom: 15px;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        gap: 1rem;
     }
-
-    .stars {
-        color: #ffd700;
-        font-size: 1.2em;
-        margin-right: 10px;
+    .movie-info {
+        flex: 1;
     }
-
-    .rating-number {
-        background: linear-gradient(45deg, #f39c12, #e67e22);
-        color: white;
-        padding: 4px 12px;
-        border-radius: 15px;
-        font-weight: bold;
-        font-size: 0.9em;
-    }
-
-    .comment {
-        color: #666;
-        line-height: 1.6;
-        margin-bottom: 20px;
+    .movie-name {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
         display: -webkit-box;
-        -webkit-line-clamp: 3;
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+    }
+    .movie-link {
+        color: #667eea;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .movie-link:hover {
+        color: #4c51bf;
+        text-decoration: underline;
+    }
+
+    .rating-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .stars-display {
+        font-size: 1.5rem;
+        color: #ffd700;
+        filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.3));
+    }
+    .rating-badge {
+        background: linear-gradient(135deg, #ffd700, #ffb700);
+        color: #8b4513;
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+    }
+
+    .reviewer-info {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+        opacity: 0.8;
+    }
+    .reviewer-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.2rem;
+    }
+    .reviewer-details {
+        flex: 1;
+    }
+    .reviewer-name {
+        font-weight: 600;
+        color: #f0f0f0;
+    }
+    .review-date {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    .review-comment {
+        color: #e0e0e0;
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        position: relative;
+    }
+    .review-comment.expanded {
+        -webkit-line-clamp: unset;
     }
 
     .review-actions {
         display: flex;
-        gap: 10px;
+        gap: 0.8rem;
         justify-content: flex-end;
+        flex-wrap: wrap;
     }
-
-    .btn-small {
-        padding: 6px 12px;
-        font-size: 0.85em;
+    .btn-sm {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        border-radius: 25px;
         min-width: auto;
+        gap: 0.3rem;
     }
-
+    .btn-view {
+        background: rgba(102, 126, 234, 0.2);
+        color: #667eea;
+        border: 1px solid rgba(102, 126, 234, 0.3);
+    }
+    .btn-view:hover {
+        background: rgba(102, 126, 234, 0.3);
+        transform: translateY(-2px);
+    }
     .btn-warning {
-        background: linear-gradient(45deg, #f39c12, #e67e22);
-        color: white;
-        box-shadow: 0 2px 10px rgba(243, 156, 18, 0.3);
+        background: rgba(243, 156, 18, 0.2);
+        color: #f39c12;
+        border: 1px solid rgba(243, 156, 18, 0.3);
     }
-
     .btn-warning:hover {
-        background: linear-gradient(45deg, #e67e22, #d35400);
+        background: rgba(243, 156, 18, 0.3);
+        transform: translateY(-2px);
     }
-
     .btn-danger {
-        background: linear-gradient(45deg, #e74c3c, #c0392b);
-        color: white;
-        box-shadow: 0 2px 10px rgba(231, 76, 60, 0.3);
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
     }
-
     .btn-danger:hover {
-        background: linear-gradient(45deg, #c0392b, #a93226);
+        background: rgba(239, 68, 68, 0.3);
+        transform: translateY(-2px);
     }
 
-    .no-reviews {
+    .empty-state {
         text-align: center;
-        background: white;
-        padding: 60px 40px;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 4rem 2rem;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .empty-icon {
+        font-size: 5rem;
+        color: #667eea;
+        margin-bottom: 1.5rem;
+        opacity: 0.7;
+    }
+    .empty-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #f0f0f0;
+    }
+    .empty-message {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        margin-bottom: 2rem;
+        line-height: 1.6;
     }
 
-    .no-reviews h3 {
-        color: #2c3e50;
-        font-size: 1.5em;
-        margin-bottom: 15px;
-    }
-
-    .no-reviews p {
-        color: #666;
-        font-size: 1.1em;
-        margin-bottom: 25px;
-    }
-
-    .success-message {
-        background: linear-gradient(45deg, #2ecc71, #27ae60);
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        margin-bottom: 25px;
+    .load-more {
         text-align: center;
-        font-weight: 500;
+        margin-top: 3rem;
     }
 
     @media (max-width: 768px) {
-        .container {
-            margin: 10px;
-        }
-
+        .nav-links { display: none; }
         .reviews-grid {
             grid-template-columns: 1fr;
-            gap: 20px;
+            gap: 1.5rem;
         }
-
-        .header {
-            padding: 15px 20px;
-        }
-
-        .header h1 {
-            font-size: 1.8em;
-        }
-
         .review-card {
-            padding: 20px;
+            padding: 1.5rem;
         }
-
-        .review-actions {
+        .page-title {
+            font-size: 2.5rem;
+        }
+        .review-header {
             flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        .rating-section {
+            align-self: flex-start;
+            flex-direction: row;
+            gap: 1rem;
+        }
+        .page-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        .reviews-stats {
+            gap: 1rem;
+        }
+        .stat-card {
+            min-width: 120px;
+            padding: 1rem 1.5rem;
         }
     }
 
     @media (max-width: 480px) {
-        body {
-            padding: 10px;
+        .container {
+            padding: 1rem;
         }
-
-        .header h1 {
-            font-size: 1.5em;
+        .page-title {
+            font-size: 2rem;
         }
-
-        .btn {
-            width: 100%;
-            margin-bottom: 10px;
+        .review-actions {
+            justify-content: center;
+        }
+        .reviews-stats {
+            flex-direction: column;
+            align-items: center;
         }
     }
   </style>
 </head>
 <body>
+<header class="header">
+  <div class="nav-container">
+    <a href="/movie/" class="logo">🎬 MovieHub</a>
+    <ul class="nav-links">
+      <li><a href="/movie/">Home</a></li>
+      <li><a href="/movie/all">Movies</a></li>
+      <li><a href="/reviews" class="active">Reviews</a></li>
+      <li><a href="/movie/add">Add Movie</a></li>
+    </ul>
+  </div>
+</header>
+
 <div class="container">
-  <div class="header">
-    <h1>Movie Reviews</h1>
-    <p>Discover what people are saying about their favorite movies</p>
+  <div class="page-header">
+    <h1 class="page-title">⭐ Movie Reviews</h1>
+    <p class="page-subtitle">Discover what movie enthusiasts are saying about their favorite films</p>
   </div>
 
-  <div class="actions">
-    <a th:href="@{/reviews/create}" class="btn btn-primary">Add New Review</a>
-    <a th:href="@{/movie/all}" class="btn btn-secondary">Back to Movies</a>
+  <div class="page-actions">
+    <a th:href="@{/reviews/create}" class="btn btn-primary">
+      <i class="fas fa-plus"></i>
+      Write Review
+    </a>
+    <a href="/movie/all" class="btn btn-secondary">
+      <i class="fas fa-film"></i>
+      Browse Movies
+    </a>
   </div>
 
-  <div th:if="${message}" class="success-message" th:text="${message}">
-    Success message here
+  <!-- Success/Info Messages -->
+  <div class="alert alert-success" th:if="${successMessage}">
+    <i class="fas fa-check-circle"></i>
+    <span th:text="${successMessage}">Success message</span>
   </div>
 
-  <div th:if="${reviews != null and !#lists.isEmpty(reviews)}" class="reviews-grid">
-    <div th:each="review : ${reviews}" class="review-card">
-      <div class="movie-name" th:text="${movieTitles[review.movieId] != null ? movieTitles[review.movieId] : review.movieId}">Movie</div>
+  <div class="alert alert-info" th:if="${message}">
+    <i class="fas fa-info-circle"></i>
+    <span th:text="${message}">Info message</span>
+  </div>
 
-      <div class="rating">
-        <div class="stars">
-  <span th:each="i : ${#numbers.sequence(1, 5)}">
-    <span th:if="${i <= review.rating}">★</span>
-    <span th:if="${i > review.rating}" style="color: #ddd;">★</span>
-  </span>
+  <!-- Reviews Stats -->
+  <div class="reviews-stats" th:if="${reviews != null and !reviews.empty}">
+    <div class="stat-card">
+      <div class="stat-number" th:text="${#lists.size(reviews)}">0</div>
+      <div class="stat-label">Total Reviews</div>
+    </div>
+    <div class="stat-card" th:if="${movieTitles != null}">
+      <div class="stat-number" th:text="${#maps.size(movieTitles)}">0</div>
+      <div class="stat-label">Movies Reviewed</div>
+    </div>
+  </div>
+
+  <!-- Reviews Grid -->
+  <div class="reviews-grid" th:if="${reviews != null and !reviews.empty}">
+    <div class="review-card" th:each="review : ${reviews}">
+
+      <div class="review-header">
+        <div class="movie-info">
+          <div class="movie-name">
+            <a th:href="@{'/movie/' + ${review.movieId}}" class="movie-link"
+               th:text="${movieTitles != null and movieTitles[review.movieId] != null ? movieTitles[review.movieId] : review.movieId}">
+              Movie Title
+            </a>
+          </div>
         </div>
-        <span class="rating-number" th:text="${review.rating} + '/5'">5/5</span>
+
+        <div class="rating-section">
+          <div class="stars-display">
+            <span th:each="i : ${#numbers.sequence(1, review.rating)}">⭐</span>
+            <span th:each="i : ${#numbers.sequence(review.rating + 1, 5)}" style="opacity: 0.3;">☆</span>
+          </div>
+          <div class="rating-badge" th:text="${review.rating} + '/5'">5/5</div>
+        </div>
       </div>
 
-      <div class="comment" th:text="${review.comment}">
-        This is the review comment text that will be displayed here...
+      <div class="reviewer-info">
+        <div class="reviewer-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="reviewer-details">
+          <div class="reviewer-name" th:text="${review.userId != null and !#strings.isEmpty(review.userId) ? review.userId : 'Anonymous User'}">
+            Reviewer Name
+          </div>
+          <div class="review-date" th:if="${review.createdAt}">
+            <i class="fas fa-calendar"></i>
+            <span th:text="${#temporals.format(review.createdAt, 'MMM dd, yyyy')}">Review Date</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-comment" th:text="${review.comment}">
+        This is the review comment that provides detailed thoughts about the movie, including what the reviewer liked or disliked about various aspects of the film.
       </div>
 
       <div class="review-actions">
-        <a th:href="@{'/reviews/edit/' + ${review.reviewId}}" class="btn btn-warning btn-small">Edit</a>
-        <a th:href="@{'/reviews/delete/' + ${review.reviewId}}" class="btn btn-danger btn-small">Delete</a>
+        <a th:href="@{'/reviews/' + ${review.reviewId}}" class="btn btn-view btn-sm">
+          <i class="fas fa-eye"></i>
+          View
+        </a>
+        <a th:href="@{'/reviews/edit/' + ${review.reviewId}}" class="btn btn-warning btn-sm">
+          <i class="fas fa-edit"></i>
+          Edit
+        </a>
+        <a th:href="@{'/reviews/delete/' + ${review.reviewId}}"
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Are you sure you want to delete this review?')">
+          <i class="fas fa-trash"></i>
+          Delete
+        </a>
       </div>
     </div>
   </div>
 
-  <div th:if="${reviews == null or #lists.isEmpty(reviews)}" class="no-reviews">
-    <h3>No Reviews Yet</h3>
-    <p>Be the first to share your thoughts about a movie!</p>
-    <a th:href="@{/reviews/create}" class="btn btn-primary">Write Your First Review</a>
+  <!-- Empty State -->
+  <div class="empty-state" th:if="${reviews == null or reviews.empty}">
+    <div class="empty-icon">💭</div>
+    <h2 class="empty-title">No Reviews Yet</h2>
+    <p class="empty-message">
+      Be the first to share your thoughts about movies! Your reviews help other movie lovers discover great films.
+    </p>
+    <a th:href="@{/reviews/create}" class="btn btn-primary">
+      <i class="fas fa-star"></i>
+      Write First Review
+    </a>
+  </div>
+
+  <!-- Load More (for future pagination) -->
+  <div class="load-more" th:if="${reviews != null and !reviews.empty and #lists.size(reviews) >= 10}">
+    <button class="btn btn-secondary" style="opacity: 0.6; cursor: not-allowed;" disabled>
+      <i class="fas fa-plus"></i>
+      Load More Reviews
+    </button>
+    <p style="margin-top: 1rem; opacity: 0.6; font-size: 0.9rem;">
+      Pagination coming soon!
+    </p>
   </div>
 </div>
 </body>
