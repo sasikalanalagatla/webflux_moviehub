@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -428,7 +428,28 @@
             <li><a href="/movie/">Home</a></li>
             <li><a href="/movie/all">Movies</a></li>
             <li><a href="/reviews">Reviews</a></li>
-            <li><a href="/movie/add">Add Movie</a></li>
+
+            <!-- Admin-only link -->
+            <li sec:authorize="hasRole('ADMIN')">
+                <a href="/movie/add">Add Movie</a>
+            </li>
+
+            <!-- Show username when logged in -->
+            <li sec:authorize="isAuthenticated()">
+                <span style="color: #ccc;">Hello, <span sec:authentication="name"></span></span>
+            </li>
+
+            <!-- Logout when authenticated -->
+            <li sec:authorize="isAuthenticated()">
+                <form action="/auth/logout" method="post" style="display: inline;">
+                    <button type="submit" style="background: none; border: none; color: white; cursor: pointer;">Logout</button>
+                </form>
+            </li>
+
+            <!-- Login when not authenticated -->
+            <li sec:authorize="!isAuthenticated()">
+                <a href="/auth/login">Login</a>
+            </li>
         </ul>
     </div>
 </header>
@@ -504,12 +525,6 @@
                           onsubmit="return confirm('Are you sure you want to delete this movie? This action cannot be undone.');">
                         <button type="submit" class="btn btn-danger">
                             <i class="fas fa-trash"></i> Delete Movie
-                        </button>
-                    </form>
-
-                    <form th:action="@{'/movie/' + ${movie.movieId} + '/enrich'}" method="post" style="display: inline;">
-                        <button type="submit" class="btn btn-secondary">
-                            <i class="fas fa-sync"></i> Refresh Data
                         </button>
                     </form>
                 </div>
