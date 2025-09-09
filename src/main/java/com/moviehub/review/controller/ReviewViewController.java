@@ -15,6 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,12 +31,17 @@ public class ReviewViewController {
     @Autowired
     private MovieService movieService;
 
-    // Add this method to handle pagination and better error handling
     @GetMapping
-    public Mono<String> getAllReviews(Model model,
+    public Mono<String> getAllReviews(Model model, Principal principal,
                                       @RequestParam(defaultValue = "0") int page,
                                       @RequestParam(defaultValue = "10") int size) {
         logger.info("Fetching all reviews - page: {}, size: {}", page, size);
+
+        // Add current user to model if authenticated
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+            logger.debug("User {} accessing reviews list", principal.getName());
+        }
 
         return reviewService.getAllReviews()
                 .collectList()
@@ -69,17 +75,27 @@ public class ReviewViewController {
                 });
     }
 
-
     @GetMapping("/create")
-    public Mono<String> showCreateForm(Model model,
+    public Mono<String> showCreateForm(Model model, Principal principal,
                                        @RequestParam(required = false) String movieId,
                                        @RequestParam(required = false) String searchQuery) {
         logger.info("Displaying create review form with search: {}", searchQuery);
+
+        // Add current user to model if authenticated
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+            logger.debug("User {} accessing create review form", principal.getName());
+        }
 
         // Initialize review object
         ReviewRequestDto review = new ReviewRequestDto();
         if (movieId != null && !movieId.trim().isEmpty()) {
             review.setMovieId(movieId);
+        }
+
+        // Auto-set userId if user is authenticated
+        if (principal != null) {
+            review.setUserId(principal.getName());
         }
 
         // Pre-calculate cancel URL
@@ -89,15 +105,15 @@ public class ReviewViewController {
         model.addAttribute("review", review);
         model.addAttribute("cancelUrl", cancelUrl);
         model.addAttribute("selectedMovieId", movieId);
-        model.addAttribute("searchQuery", searchQuery); // **Add search query to model**
+        model.addAttribute("searchQuery", searchQuery);
 
-        // **Filter movies based on search query**
+        // Filter movies based on search query
         return movieService.getALlMovies()
                 .collectList()
                 .doOnNext(movies -> {
                     List<MovieResponseDto> filteredMovies = movies;
 
-                    // **Filter by search query if provided**
+                    // Filter by search query if provided
                     if (searchQuery != null && !searchQuery.trim().isEmpty()) {
                         String query = searchQuery.toLowerCase().trim();
                         filteredMovies = movies.stream()
@@ -109,7 +125,7 @@ public class ReviewViewController {
 
                     logger.debug("Loaded {} movies for review form dropdown", filteredMovies.size());
                     model.addAttribute("movies", filteredMovies);
-                    model.addAttribute("totalMoviesCount", movies.size()); // **Show total count**
+                    model.addAttribute("totalMoviesCount", movies.size());
                     model.addAttribute("filteredCount", filteredMovies.size());
 
                     // Find selected movie title for display
@@ -127,20 +143,25 @@ public class ReviewViewController {
     @PostMapping("/create")
     public Mono<String> createReview(@Valid @ModelAttribute ReviewRequestDto reviewRequestDto,
                                      BindingResult bindingResult,
-                                     Model model,
+                                     Model model, Principal principal,
                                      @RequestParam(required = false) String searchQuery) {
         logger.info("Attempting to create review for movie ID: {}", reviewRequestDto.getMovieId());
+
+        // Add current user to model if authenticated (for error cases)
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+        }
 
         if (bindingResult.hasErrors()) {
             logger.warn("Validation errors while creating review: {}", bindingResult.getAllErrors());
             model.addAttribute("review", reviewRequestDto);
-            model.addAttribute("searchQuery", searchQuery); // **Maintain search state**
+            model.addAttribute("searchQuery", searchQuery);
 
             String cancelUrl = (reviewRequestDto.getMovieId() != null && !reviewRequestDto.getMovieId().trim().isEmpty()) ?
                     "/movie/" + reviewRequestDto.getMovieId() : "/movie/all";
             model.addAttribute("cancelUrl", cancelUrl);
 
-            // **Re-load and filter movies for dropdown on error**
+            // Re-load and filter movies for dropdown on error
             return movieService.getALlMovies()
                     .collectList()
                     .doOnNext(movies -> {
@@ -158,16 +179,21 @@ public class ReviewViewController {
                     .thenReturn("reviews/create");
         }
 
-        // ... rest of the method remains the same
+        // Set userId from authenticated user if not already set
         if (reviewRequestDto.getUserId() == null || reviewRequestDto.getUserId().trim().isEmpty()) {
-            reviewRequestDto.setUserId("anonymous-user");
+            if (principal != null) {
+                reviewRequestDto.setUserId(principal.getName());
+                logger.debug("Setting userId from authenticated user: {}", principal.getName());
+            } else {
+                reviewRequestDto.setUserId("anonymous-user");
+                logger.debug("Setting userId as anonymous-user");
+            }
         }
 
         return reviewService.createReview(reviewRequestDto)
                 .doOnSuccess(review -> logger.info("Successfully created review for movie ID: {}", reviewRequestDto.getMovieId()))
                 .then(Mono.just("redirect:/reviews"))
                 .onErrorResume(error -> {
-                    // ... error handling with search state maintained
                     logger.error("Failed to create review for movie {}: {}", reviewRequestDto.getMovieId(), error.getMessage(), error);
                     model.addAttribute("error", "Failed to create review: " + error.getMessage());
                     model.addAttribute("review", reviewRequestDto);
@@ -193,10 +219,16 @@ public class ReviewViewController {
                 });
     }
 
-
     @GetMapping("/edit/{reviewId}")
-    public Mono<String> showEditForm(@PathVariable String reviewId, Model model) {
+    public Mono<String> showEditForm(@PathVariable String reviewId, Model model, Principal principal) {
         logger.info("Displaying edit form for review ID: {}", reviewId);
+
+        // Add current user to model if authenticated
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+            logger.debug("User {} accessing edit form for review {}", principal.getName(), reviewId);
+        }
+
         return reviewService.getReviewById(reviewId)
                 .doOnNext(review -> {
                     logger.debug("Retrieved review for editing: {}", reviewId);
@@ -215,11 +247,16 @@ public class ReviewViewController {
                 });
     }
 
-
-
     @GetMapping("/{reviewId}")
-    public Mono<String> getReviewById(@PathVariable String reviewId, Model model) {
+    public Mono<String> getReviewById(@PathVariable String reviewId, Model model, Principal principal) {
         logger.info("Fetching review details for ID: {}", reviewId);
+
+        // Add current user to model if authenticated
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+            logger.debug("User {} accessing review details for {}", principal.getName(), reviewId);
+        }
+
         return reviewService.getReviewById(reviewId)
                 .doOnNext(review -> {
                     logger.debug("Retrieved review: {} for movie ID: {}", reviewId, review.getMovieId());
@@ -242,8 +279,13 @@ public class ReviewViewController {
     @PostMapping("/update/{reviewId}")
     public Mono<String> updateReview(@PathVariable String reviewId,
                                      @Valid @ModelAttribute ReviewRequestDto requestDto,
-                                     BindingResult bindingResult, Model model) {
+                                     BindingResult bindingResult, Model model, Principal principal) {
         logger.info("Attempting to update review ID: {}", reviewId);
+
+        // Add current user to model if authenticated (for error cases)
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+        }
 
         if (bindingResult.hasErrors()) {
             logger.warn("Validation errors while updating review {}: {}", reviewId, bindingResult.getAllErrors());

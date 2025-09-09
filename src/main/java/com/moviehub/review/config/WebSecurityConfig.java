@@ -27,22 +27,34 @@ public class WebSecurityConfig {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable) // Disable CSRF for simplicity
                 .authorizeExchange(auth -> auth
-                        // Public access - viewing content
-                        .pathMatchers("/register", "/login", "/css/**", "/js/**", "/images/**",
-                                "/movie/", "/movie/all", "/movie/*", "/movie/*/detailed",
+                        // ===== PUBLIC ACCESS - No authentication required =====
+                        .pathMatchers("/register", "/registration", "/login", "/css/**", "/js/**", "/images/**",
+                                "/favicon.ico", "/error").permitAll()
+
+                        // Public viewing of content
+                        .pathMatchers("/", "/movie/", "/movie/all", "/movie/*/detailed", "/movie/*",
                                 "/reviews", "/reviews/*").permitAll()
 
-                        // User level access - can create reviews
-                        .pathMatchers("/reviews/create", "/reviews/update/**").hasAnyRole("USER", "AUTHOR", "ADMIN")
+                        // ===== AUTHENTICATED USERS ONLY - All review operations =====
+                        // Users can create reviews (must be logged in)
+                        .pathMatchers("/reviews/create").hasAnyRole("USER", "AUTHOR", "ADMIN")
 
-                        // Author level access - can create and manage movies
-                        .pathMatchers("/movie/add", "/movie/save", "/movie/edit/**",
-                                "/movie/update/**", "/movie/*/enrich").hasAnyRole("AUTHOR", "ADMIN")
+                        // Users can edit/update/delete their own reviews, admins can edit any
+                        .pathMatchers("/reviews/edit/**", "/reviews/update/**", "/reviews/delete/**")
+                        .hasAnyRole("USER", "AUTHOR", "ADMIN")
 
-                        // Admin level access - can delete content and manage users
-                        .pathMatchers("/movie/delete/**", "/reviews/edit/**",
-                                "/reviews/delete/**", "/admin/**").hasRole("ADMIN")
+                        // ===== AUTHOR ROLE - Can create and manage movies they created =====
+                        .pathMatchers("/movie/add", "/movie/save").hasAnyRole("AUTHOR", "ADMIN")
+                        .pathMatchers("/movie/edit/**", "/movie/update/**", "/movie/*/enrich")
+                        .hasAnyRole("AUTHOR", "ADMIN")
 
+                        // ===== ADMIN ROLE - Full access to everything =====
+                        .pathMatchers("/movie/delete/**", "/admin/**", "/management/**").hasRole("ADMIN")
+
+                        // User management (admin only)
+                        .pathMatchers("/users/**", "/roles/**").hasRole("ADMIN")
+
+                        // ===== DEFAULT - All other paths require authentication =====
                         .anyExchange().authenticated()
                 )
                 .formLogin(form -> form

@@ -53,6 +53,94 @@
             color: #ff6b6b;
         }
 
+        /* Authentication Section */
+        .nav-auth {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Authenticated User Styles */
+        .auth-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-greeting {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .user-greeting i {
+            color: #4ecdc4;
+            font-size: 1.1rem;
+        }
+        .user-name {
+            color: #4ecdc4;
+            font-weight: 600;
+        }
+
+        /* Logout Button */
+        .logout-form {
+            display: inline;
+            margin: 0;
+        }
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        /* Guest Login Styles */
+        .auth-guest {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .login-btn {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+        }
+        .register-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .register-link:hover {
+            color: #4ecdc4;
+        }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -276,6 +364,28 @@
 
         @media (max-width: 768px) {
             .nav-links { display: none; }
+            .nav-auth {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-end;
+            }
+            .auth-user {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-end;
+            }
+            .user-greeting {
+                font-size: 0.85rem;
+            }
+            .logout-btn, .login-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            .auth-guest {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-end;
+            }
             .form-container { padding: 2rem 1.5rem; }
             .form-row { grid-template-columns: 1fr; }
             .form-actions { flex-direction: column; align-items: center; }
@@ -292,6 +402,35 @@
             <li><a href="/movie/all">Movies</a></li>
             <li><a href="/movie/add">Add Movie</a></li>
         </ul>
+
+        <!-- Authentication Section -->
+        <div class="nav-auth">
+            <!-- Show when user is authenticated -->
+            <div th:if="${currentUser}" class="auth-user">
+                <div class="user-greeting">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Hello, <span class="user-name" th:text="${currentUser}">Username</span></span>
+                </div>
+                <form th:action="@{/logout}" method="post" class="logout-form">
+                    <button type="submit" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </form>
+            </div>
+
+            <!-- Show when user is not authenticated -->
+            <div th:unless="${currentUser}" class="auth-guest">
+                <a href="/login" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login
+                </a>
+                <a href="/register" class="register-link">
+                    <i class="fas fa-user-plus"></i>
+                    Register
+                </a>
+            </div>
+        </div>
     </div>
 </header>
 

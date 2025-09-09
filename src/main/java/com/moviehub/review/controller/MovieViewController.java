@@ -51,7 +51,7 @@ public class MovieViewController {
     }
 
     @GetMapping("/all")
-    public Mono<String> getAllMovies(Model model,
+    public Mono<String> getAllMovies(Model model, Principal principal,
                                      @RequestParam(required = false) String search,
                                      @RequestParam(required = false) String genre,
                                      @RequestParam(required = false) Integer year,
@@ -66,6 +66,12 @@ public class MovieViewController {
         return movieService.getALlMovies()
                 .collectList()
                 .doOnNext(movies -> {
+                    // Add current user to model if authenticated
+                    if (principal != null) {
+                        model.addAttribute("currentUser", principal.getName());
+                        logger.debug("User {} accessing movie list", principal.getName());
+                    }
+
                     logger.debug("Retrieved {} total movies from database", movies.size());
 
                     // **FIX 1: Deduplicate movies by ID first**
@@ -119,17 +125,29 @@ public class MovieViewController {
                 .thenReturn("movie-list");
     }
 
-
     @GetMapping("/add")
-    public Mono<String> showAddForm(Model model) {
+    public Mono<String> showAddForm(Model model, Principal principal) {
         logger.info("Displaying add movie form");
+
+        // Add current user to model if authenticated
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+            logger.debug("User {} accessing add movie form", principal.getName());
+        }
+
         model.addAttribute("movie", new MovieRequestDto());
         return Mono.just("movie-form");
     }
 
     @GetMapping("/edit/{movieId}")
-    public Mono<String> showEditForm(@PathVariable String movieId, Model model) {
+    public Mono<String> showEditForm(@PathVariable String movieId, Model model, Principal principal) {
         logger.info("Displaying edit form for movie ID: {}", movieId);
+
+        // Add current user to model if authenticated
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+            logger.debug("User {} accessing edit form for movie {}", principal.getName(), movieId);
+        }
 
         return movieService.getMovieById(movieId)
                 .doOnNext(movie -> {
@@ -144,8 +162,14 @@ public class MovieViewController {
     }
 
     @GetMapping("/{movieId}")
-    public Mono<String> getMovieById(@PathVariable String movieId, Model model) {
+    public Mono<String> getMovieById(@PathVariable String movieId, Model model, Principal principal) {
         logger.info("Fetching movie details for ID: {}", movieId);
+
+        // Add current user to model if authenticated
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+            logger.debug("User {} accessing movie details for {}", principal.getName(), movieId);
+        }
 
         return movieService.getMovieById(movieId)
                 .doOnNext(movie -> {
@@ -203,12 +227,15 @@ public class MovieViewController {
                 });
     }
 
-
-
     @PostMapping("/save")
     public Mono<String> createMovie(@Valid @ModelAttribute MovieRequestDto movieRequestDto,
-                                    BindingResult bindingResult, Model model) {
+                                    BindingResult bindingResult, Model model, Principal principal) {
         logger.info("Attempting to create new movie: {}", movieRequestDto.getTitle());
+
+        // Add current user to model if authenticated (for error cases)
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+        }
 
         if (bindingResult.hasErrors()) {
             logger.warn("Validation errors while creating movie: {}", bindingResult.getAllErrors());
@@ -230,8 +257,13 @@ public class MovieViewController {
     @PostMapping("/update/{movieId}")
     public Mono<String> updateMovie(@PathVariable String movieId,
                                     @Valid @ModelAttribute MovieRequestDto movieRequestDto,
-                                    BindingResult bindingResult, Model model) {
+                                    BindingResult bindingResult, Model model, Principal principal) {
         logger.info("Attempting to update movie ID: {}", movieId);
+
+        // Add current user to model if authenticated (for error cases)
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+        }
 
         if (bindingResult.hasErrors()) {
             logger.warn("Validation errors while updating movie {}: {}", movieId, bindingResult.getAllErrors());
@@ -271,8 +303,14 @@ public class MovieViewController {
     }
 
     @GetMapping("/{movieId}/detailed")
-    public Mono<String> getDetailedMovieById(@PathVariable String movieId, Model model) {
+    public Mono<String> getDetailedMovieById(@PathVariable String movieId, Model model, Principal principal) {
         logger.info("Fetching detailed movie information for ID: {}", movieId);
+
+        // Add current user to model if authenticated
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+            logger.debug("User {} accessing detailed movie view for {}", principal.getName(), movieId);
+        }
 
         return movieService.getMovieById(movieId)
                 .doOnNext(movie -> {
@@ -316,7 +354,6 @@ public class MovieViewController {
                 });
     }
 
-
     @PostMapping("/{movieId}/enrich")
     public Mono<String> enrichMovieWithTmdbData(@PathVariable String movieId) {
         logger.info("Manually enriching movie {} with TMDb data", movieId);
@@ -335,8 +372,6 @@ public class MovieViewController {
                     return Mono.just("redirect:/movie/all?error=enrichment-failed");
                 });
     }
-
-
 
     private boolean matchesFilters(MovieResponseDto movie, String search, String genre, Integer year) {
         String trimmedSearch = trimString(search);
