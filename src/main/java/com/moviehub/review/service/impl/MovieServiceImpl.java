@@ -194,7 +194,7 @@ public class MovieServiceImpl implements MovieService {
         return createMovie(dto);
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void syncTeluguMoviesDaily() {
         if (tmdbApiKey == null || tmdbApiKey.isBlank()) {
             logger.warn("TMDb API key not configured, skipping Telugu movie sync");
@@ -507,26 +507,61 @@ public class MovieServiceImpl implements MovieService {
             String movieTitle = originalTitle != null ? originalTitle : title;
 
             if (movieTitle == null || movieTitle.isBlank()) {
+                logger.debug("Skipping movie with empty title: TMDb ID {}", tmdbId);
                 return Mono.empty();
             }
 
-            return movieRepository.findByTitleIgnoreCase(movieTitle)
-                    .hasElement()
-                    .flatMap(exists -> {
-                        if (exists) {
-                            logger.debug("Movie already exists: {}", movieTitle);
+            // **FIX: Check for duplicates by both title AND TMDb ID**
+            return Mono.zip(
+                            movieRepository.findByTitleIgnoreCase(movieTitle).hasElement(),
+                            movieRepository.findByTmdbId(tmdbId).hasElement()
+                    )
+                    .flatMap(tuple -> {
+                        boolean titleExists = tuple.getT1();
+                        boolean tmdbIdExists = tuple.getT2();
+
+                        if (titleExists || tmdbIdExists) {
+                            logger.debug("Movie already exists - Title: {}, TMDb ID: {}", movieTitle, tmdbId);
                             return Mono.empty();
                         }
 
                         return fetchCompleteMovieDataFromTmdb(tmdbId)
                                 .flatMap(completeData -> {
                                     Movie movie = createMovieFromTmdbData(completeData);
+                                    movie.setTmdbId(tmdbId); // Ensure TMDb ID is set
+
+                                    // **FIX: Validate movie before saving**
+                                    if (movie.getTitle() == null || movie.getTitle().isBlank()) {
+                                        logger.warn("Created movie has null/empty title, skipping save for TMDb ID: {}", tmdbId);
+                                        return Mono.empty();
+                                    }
+
                                     return movieRepository.save(movie);
                                 })
+                                .doOnSuccess(saved -> {
+                                    // **FIX: Null-safe logging**
+                                    if (saved != null && saved.getTitle() != null) {
+                                        logger.debug("Successfully saved new movie: {}", saved.getTitle());
+                                    } else {
+                                        logger.warn("Save operation returned null for movie with TMDb ID: {}", tmdbId);
+                                    }
+                                })
+                                .doOnError(error -> {
+                                    logger.error("Failed to save movie with TMDb ID {}: {}", tmdbId, error.getMessage());
+                                })
+                                .onErrorResume(error -> {
+                                    // **FIX: Continue processing other movies on error**
+                                    logger.debug("Continuing sync despite error for TMDb ID: {}", tmdbId);
+                                    return Mono.empty();
+                                })
                                 .then();
+                    })
+                    .onErrorResume(error -> {
+                        logger.error("Error in duplicate check for TMDb ID {}: {}", tmdbId, error.getMessage());
+                        return Mono.empty();
                     });
         } catch (Exception e) {
-            logger.error("Error processing Telugu movie: {}", e.getMessage(), e);
+            logger.error("Error processing Telugu movie data: {}", e.getMessage(), e);
             return Mono.empty();
         }
     }

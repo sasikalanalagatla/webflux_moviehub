@@ -2,6 +2,7 @@ package com.moviehub.review.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,6 +38,7 @@ public class Movie {
     private List<String> lyricists;
     private List<String> musicDirectors;
 
+    @Indexed(unique = true, sparse = true)
     private String tmdbId;
     private String imdbId;
 }

@@ -8,4 +8,5 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface MovieRepository extends ReactiveMongoRepository<Movie, String> {
     Mono<Movie> findByTitleIgnoreCase(String title);
+    Mono<Movie> findByTmdbId(String tmdbId);
 }

@@ -16,6 +16,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,7 +46,7 @@ public class MovieViewController {
                                      @RequestParam(required = false) String genre,
                                      @RequestParam(required = false) Integer year,
                                      @RequestParam(defaultValue = "0") int page,
-                                     @RequestParam(defaultValue = "20") int size,
+                                     @RequestParam(defaultValue = "25") int size,
                                      @RequestParam(name = "rpage", defaultValue = "0") int releasedPage,
                                      @RequestParam(name = "upage", defaultValue = "0") int upcomingPage) {
 
@@ -52,30 +54,53 @@ public class MovieViewController {
                 search, genre, year, page, size);
 
         return movieService.getALlMovies()
-                .filter(movie -> matchesFilters(movie, search, genre, year))
                 .collectList()
                 .doOnNext(movies -> {
-                    logger.debug("Retrieved {} movies after filtering", movies.size());
+                    logger.debug("Retrieved {} total movies from database", movies.size());
 
-                    List<MovieResponseDto> released = movies.stream()
+                    // **FIX 1: Deduplicate movies by ID first**
+                    Map<String, MovieResponseDto> uniqueMovies = new LinkedHashMap<>();
+                    movies.forEach(movie -> {
+                        if (movie != null && movie.getMovieId() != null) {
+                            uniqueMovies.put(movie.getMovieId(), movie);
+                        }
+                    });
+
+                    List<MovieResponseDto> deduplicatedMovies = new ArrayList<>(uniqueMovies.values());
+                    logger.debug("After deduplication: {} unique movies", deduplicatedMovies.size());
+
+                    // **FIX 2: Apply filters on deduplicated list**
+                    List<MovieResponseDto> filteredMovies = deduplicatedMovies.stream()
+                            .filter(movie -> matchesFilters(movie, search, genre, year))
+                            .collect(Collectors.toList());
+
+                    logger.debug("After filtering: {} movies match criteria", filteredMovies.size());
+
+                    // **FIX 3: Split into released and upcoming from filtered list**
+                    List<MovieResponseDto> released = filteredMovies.stream()
                             .filter(m -> Boolean.TRUE.equals(m.getReleased()))
+                            .sorted((a, b) -> b.getReleaseYear().compareTo(a.getReleaseYear())) // Latest first
                             .collect(Collectors.toList());
 
-                    List<MovieResponseDto> upcoming = movies.stream()
+                    List<MovieResponseDto> upcoming = filteredMovies.stream()
                             .filter(m -> !Boolean.TRUE.equals(m.getReleased()))
+                            .sorted((a, b) -> a.getReleaseYear().compareTo(b.getReleaseYear())) // Earliest first
                             .collect(Collectors.toList());
 
-                    logger.debug("Movies categorized - released: {}, upcoming: {}", released.size(), upcoming.size());
+                    // **FIX 4: Create combined list without duplicates**
+                    List<MovieResponseDto> allMoviesForDisplay = new ArrayList<>();
+                    allMoviesForDisplay.addAll(upcoming); // Show upcoming first
+                    allMoviesForDisplay.addAll(released); // Then released
 
-                    List<MovieResponseDto> allMovies = List.of(upcoming, released)
-                            .stream()
-                            .flatMap(List::stream)
-                            .collect(Collectors.toList());
+                    logger.debug("Movies categorized - released: {}, upcoming: {}, total for display: {}",
+                            released.size(), upcoming.size(), allMoviesForDisplay.size());
 
-                    addPaginationAttributes(model, allMovies, page, size, "");
+                    // **FIX 5: Use separate pagination for each category**
+                    addPaginationAttributes(model, allMoviesForDisplay, page, size, "");
                     addPaginationAttributes(model, released, releasedPage, size, "released");
                     addPaginationAttributes(model, upcoming, upcomingPage, size, "upcoming");
 
+                    // Add filter attributes
                     model.addAttribute("searchQuery", trimString(search));
                     model.addAttribute("genreFilter", trimString(genre));
                     model.addAttribute("yearFilter", year);
@@ -83,6 +108,7 @@ public class MovieViewController {
                 .doOnError(error -> logger.error("Error fetching movies: {}", error.getMessage(), error))
                 .thenReturn("movie-list");
     }
+
 
     @GetMapping("/add")
     public Mono<String> showAddForm(Model model) {
