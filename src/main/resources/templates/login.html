@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieHub - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .brand h1 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .brand p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .alert {
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-danger {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #2f855a;
+            border: 1px solid #9ae6b4;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .link {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .footer-links p {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <!-- Brand Header -->
+    <div class="brand">
+        <h1>🎬 MovieHub</h1>
+        <p>Welcome Back!</p>
+    </div>
+
+    <!-- Login Form -->
+    <form th:action="@{/login}" method="post">
+        <div class="form-group">
+            <label for="username">👤 Username</label>
+            <input type="text"
+                   id="username"
+                   name="username"
+                   placeholder="Enter your username"
+                   required
+                   autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="password">🔒 Password</label>
+            <input type="password"
+                   id="password"
+                   name="password"
+                   placeholder="Enter your password"
+                   required>
+        </div>
+
+        <button type="submit" class="btn">🔑 Login</button>
+    </form>
+
+    <!-- Footer Links -->
+    <div class="footer-links">
+        <p>Don't have an account?
+            <a th:href="@{/register}" class="link"><strong>Register here</strong></a>
+        </p>
+        <a th:href="@{/movie/}" class="back-link">🏠 Back to Movies</a>
+    </div>
+</div>
+</body>
+</html>

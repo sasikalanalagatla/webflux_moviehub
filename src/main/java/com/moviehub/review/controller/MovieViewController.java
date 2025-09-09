@@ -16,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,8 +36,17 @@ public class MovieViewController {
     private ReviewService reviewService;
 
     @GetMapping("/")
-    public Mono<String> home() {
+    public Mono<String> home(Model model, Principal principal) {
         logger.info("Accessing home page");
+
+        // Add current user to model if authenticated
+        if (principal != null) {
+            model.addAttribute("currentUser", principal.getName());
+            logger.debug("User {} accessing home page", principal.getName());
+        } else {
+            logger.debug("Anonymous user accessing home page");
+        }
+
         return Mono.just("home");
     }
 

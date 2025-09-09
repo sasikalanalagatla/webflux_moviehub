@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MovieHub - Register</title>
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .register-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .brand {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .brand h1 {
+        color: #667eea;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .brand p {
+        color: #666;
+        font-size: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #333;
+        font-weight: bold;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .form-group input.error {
+        border-color: #e53e3e;
+    }
+
+    .error-message {
+        color: #e53e3e;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .form-help {
+        font-size: 0.875rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+
+    .required {
+        color: #e53e3e;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: #48bb78;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-bottom: 1rem;
+    }
+
+    .btn:hover {
+        background: #38a169;
+    }
+
+    .alert {
+        padding: 0.75rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+    }
+
+    .alert-danger {
+        background: #fed7d7;
+        color: #c53030;
+        border: 1px solid #feb2b2;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .link {
+        color: #667eea;
+        text-decoration: none;
+    }
+
+    .link:hover {
+        text-decoration: underline;
+    }
+
+    .footer-links {
+        text-align: center;
+    }
+
+    .footer-links p {
+        margin-bottom: 0.5rem;
+        color: #666;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 1rem;
+        color: #666;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .back-link:hover {
+        color: #667eea;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .form-row .form-group {
+        flex: 1;
+    }
+
+    @media (max-width: 600px) {
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+    }
+  </style>
+</head>
+<body>
+<div class="register-container">
+  <!-- Brand Header -->
+  <div class="brand">
+    <h1>🎬 MovieHub</h1>
+    <p>Join our movie community!</p>
+  </div>
+
+  <!-- Registration Form -->
+  <form th:action="@{/register}" th:object="${user}" method="post">
+
+    <!-- Username Field -->
+    <div class="form-group">
+      <label for="username">
+        👤 Username <span class="required">*</span>
+      </label>
+      <input type="text"
+             id="username"
+             th:field="*{username}"
+             th:class="${#fields.hasErrors('username')} ? 'error' : ''"
+             placeholder="Choose a unique username"
+             required>
+      <div class="error-message" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+      <div class="form-help">ℹ️ Username must be 3-50 characters long</div>
+    </div>
+
+    <!-- Email Field -->
+    <div class="form-group">
+      <label for="email">
+        ✉️ Email <span class="required">*</span>
+      </label>
+      <input type="email"
+             id="email"
+             th:field="*{email}"
+             th:class="${#fields.hasErrors('email')} ? 'error' : ''"
+             placeholder="your.email@example.com"
+             required>
+      <div class="error-message" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+    </div>
+
+    <!-- Password Fields -->
+    <div class="form-row">
+      <div class="form-group">
+        <label for="password">
+          🔒 Password <span class="required">*</span>
+        </label>
+        <input type="password"
+               id="password"
+               th:field="*{password}"
+               th:class="${#fields.hasErrors('password')} ? 'error' : ''"
+               placeholder="Create a strong password"
+               required>
+        <div class="error-message" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+        <div class="form-help">ℹ️ Minimum 6 characters</div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">
+          🔒 Confirm Password <span class="required">*</span>
+        </label>
+        <input type="password"
+               id="confirmPassword"
+               th:field="*{confirmPassword}"
+               th:class="${#fields.hasErrors('confirmPassword')} ? 'error' : ''"
+               placeholder="Re-enter your password"
+               required>
+        <div class="error-message" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn">
+      ✅ Create Account
+    </button>
+  </form>
+
+  <!-- Footer Links -->
+  <div class="footer-links">
+    <p>Already have an account?
+      <a th:href="@{/login}" class="link"><strong>Login here</strong></a>
+    </p>
+    <a th:href="@{/movie/}" class="back-link">🏠 Back to Movies</a>
+  </div>
+</div>
+</body>
+</html>

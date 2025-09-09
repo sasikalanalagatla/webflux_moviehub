@@ -52,6 +52,54 @@
             color: #ff6b6b;
         }
 
+        /* Authentication Section */
+        .nav-auth {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            font-weight: 500;
+        }
+        .user-info i {
+            color: #4ecdc4;
+        }
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+        .login-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        .login-link:hover {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -417,6 +465,9 @@
                 grid-template-columns: 1fr;
             }
             .nav-links { display: none; }
+            .nav-auth { flex-direction: column; gap: 0.5rem; }
+            .user-info { font-size: 0.9rem; }
+            .logout-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -430,6 +481,31 @@
             <li><a href="/reviews">Reviews</a></li>
             <li><a href="/movie/add">Add Movie</a></li>
         </ul>
+
+        <!-- Authentication Section -->
+        <div class="nav-auth">
+            <!-- Show when user is authenticated -->
+            <div th:if="${currentUser}" class="auth-user">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span th:text="${currentUser}">Username</span>
+                    <form th:action="@{/logout}" method="post" style="display: inline; margin-left: 1rem;">
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Show when user is not authenticated -->
+            <div th:unless="${currentUser}" class="auth-guest">
+                <a href="/login" class="login-link">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login
+                </a>
+            </div>
+        </div>
     </div>
 </header>
 
