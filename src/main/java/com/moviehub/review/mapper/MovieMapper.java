@@ -31,26 +31,22 @@ public class MovieMapper {
         dto.setTmdbId(movie.getTmdbId());
         dto.setImdbId(movie.getImdbId());
 
-        // Map cast
         if (movie.getCast() != null) {
             dto.setCast(movie.getCast().stream()
                     .map(MovieMapper::castMemberToDto)
                     .collect(Collectors.toList()));
         }
 
-        // Map crew
         if (movie.getCrew() != null) {
             dto.setCrew(crewInfoToDto(movie.getCrew()));
         }
 
-        // Map OTT platforms
         if (movie.getOttPlatforms() != null) {
             dto.setOttPlatforms(movie.getOttPlatforms().stream()
                     .map(MovieMapper::ottPlatformToDto)
                     .collect(Collectors.toList()));
         }
 
-        // Map music info
         dto.setSingers(movie.getSingers());
         dto.setLyricists(movie.getLyricists());
         dto.setMusicDirectors(movie.getMusicDirectors());
@@ -76,26 +72,22 @@ public class MovieMapper {
         movie.setLanguage(requestDto.getLanguage());
         movie.setCountry(requestDto.getCountry());
 
-        // Map cast
         if (requestDto.getCast() != null) {
             movie.setCast(requestDto.getCast().stream()
                     .map(MovieMapper::castMemberToEntity)
                     .collect(Collectors.toList()));
         }
 
-        // Map crew
         if (requestDto.getCrew() != null) {
             movie.setCrew(crewInfoToEntity(requestDto.getCrew()));
         }
 
-        // Map OTT platforms
         if (requestDto.getOttPlatforms() != null) {
             movie.setOttPlatforms(requestDto.getOttPlatforms().stream()
                     .map(MovieMapper::ottPlatformToEntity)
                     .collect(Collectors.toList()));
         }
 
-        // Map music info
         movie.setSingers(requestDto.getSingers());
         movie.setLyricists(requestDto.getLyricists());
         movie.setMusicDirectors(requestDto.getMusicDirectors());
@@ -103,7 +95,6 @@ public class MovieMapper {
         return movie;
     }
 
-    // Cast member mappings
     public static CastMemberDto castMemberToDto(CastMember castMember) {
         if (castMember == null) {
             return null;
@@ -132,7 +123,6 @@ public class MovieMapper {
         return castMember;
     }
 
-    // Crew info mappings
     public static CrewInfoDto crewInfoToDto(CrewInfo crewInfo) {
         if (crewInfo == null) {
             return null;
@@ -237,7 +227,6 @@ public class MovieMapper {
         return crewInfo;
     }
 
-    // Crew member mappings
     public static CrewMemberDto crewMemberToDto(CrewMember crewMember) {
         if (crewMember == null) {
             return null;
@@ -264,7 +253,6 @@ public class MovieMapper {
         return crewMember;
     }
 
-    // OTT platform mappings
     public static OttPlatformDto ottPlatformToDto(OttPlatform ottPlatform) {
         if (ottPlatform == null) {
             return null;
@@ -293,7 +281,6 @@ public class MovieMapper {
         return ottPlatform;
     }
 
-    // Utility methods
     public static List<MovieResponseDto> toDtoList(List<Movie> movies) {
         if (movies == null) {
             return Collections.emptyList();

@@ -39,7 +39,6 @@ public class MovieViewController {
     public Mono<String> home(Model model, Principal principal) {
         logger.info("Accessing home page");
 
-        // Add current user to model if authenticated
         if (principal != null) {
             model.addAttribute("currentUser", principal.getName());
             logger.debug("User {} accessing home page", principal.getName());
@@ -66,7 +65,6 @@ public class MovieViewController {
         return movieService.getALlMovies()
                 .collectList()
                 .doOnNext(movies -> {
-                    // Add current user to model if authenticated
                     if (principal != null) {
                         model.addAttribute("currentUser", principal.getName());
                         logger.debug("User {} accessing movie list", principal.getName());
@@ -74,7 +72,6 @@ public class MovieViewController {
 
                     logger.debug("Retrieved {} total movies from database", movies.size());
 
-                    // **FIX 1: Deduplicate movies by ID first**
                     Map<String, MovieResponseDto> uniqueMovies = new LinkedHashMap<>();
                     movies.forEach(movie -> {
                         if (movie != null && movie.getMovieId() != null) {
@@ -85,14 +82,12 @@ public class MovieViewController {
                     List<MovieResponseDto> deduplicatedMovies = new ArrayList<>(uniqueMovies.values());
                     logger.debug("After deduplication: {} unique movies", deduplicatedMovies.size());
 
-                    // **FIX 2: Apply filters on deduplicated list**
                     List<MovieResponseDto> filteredMovies = deduplicatedMovies.stream()
                             .filter(movie -> matchesFilters(movie, search, genre, year))
                             .collect(Collectors.toList());
 
                     logger.debug("After filtering: {} movies match criteria", filteredMovies.size());
 
-                    // **FIX 3: Split into released and upcoming from filtered list**
                     List<MovieResponseDto> released = filteredMovies.stream()
                             .filter(m -> Boolean.TRUE.equals(m.getReleased()))
                             .sorted((a, b) -> b.getReleaseYear().compareTo(a.getReleaseYear())) // Latest first
@@ -103,20 +98,17 @@ public class MovieViewController {
                             .sorted((a, b) -> a.getReleaseYear().compareTo(b.getReleaseYear())) // Earliest first
                             .collect(Collectors.toList());
 
-                    // **FIX 4: Create combined list without duplicates**
                     List<MovieResponseDto> allMoviesForDisplay = new ArrayList<>();
-                    allMoviesForDisplay.addAll(upcoming); // Show upcoming first
-                    allMoviesForDisplay.addAll(released); // Then released
+                    allMoviesForDisplay.addAll(upcoming);
+                    allMoviesForDisplay.addAll(released);
 
                     logger.debug("Movies categorized - released: {}, upcoming: {}, total for display: {}",
                             released.size(), upcoming.size(), allMoviesForDisplay.size());
 
-                    // **FIX 5: Use separate pagination for each category**
                     addPaginationAttributes(model, allMoviesForDisplay, page, size, "");
                     addPaginationAttributes(model, released, releasedPage, size, "released");
                     addPaginationAttributes(model, upcoming, upcomingPage, size, "upcoming");
 
-                    // Add filter attributes
                     model.addAttribute("searchQuery", trimString(search));
                     model.addAttribute("genreFilter", trimString(genre));
                     model.addAttribute("yearFilter", year);
@@ -129,7 +121,6 @@ public class MovieViewController {
     public Mono<String> showAddForm(Model model, Principal principal) {
         logger.info("Displaying add movie form");
 
-        // Add current user to model if authenticated
         if (principal != null) {
             model.addAttribute("currentUser", principal.getName());
             logger.debug("User {} accessing add movie form", principal.getName());
@@ -143,7 +134,6 @@ public class MovieViewController {
     public Mono<String> showEditForm(@PathVariable String movieId, Model model, Principal principal) {
         logger.info("Displaying edit form for movie ID: {}", movieId);
 
-        // Add current user to model if authenticated
         if (principal != null) {
             model.addAttribute("currentUser", principal.getName());
             logger.debug("User {} accessing edit form for movie {}", principal.getName(), movieId);
@@ -165,7 +155,6 @@ public class MovieViewController {
     public Mono<String> getMovieById(@PathVariable String movieId, Model model, Principal principal) {
         logger.info("Fetching movie details for ID: {}", movieId);
 
-        // Add current user to model if authenticated
         if (principal != null) {
             model.addAttribute("currentUser", principal.getName());
             logger.debug("User {} accessing movie details for {}", principal.getName(), movieId);
@@ -176,7 +165,6 @@ public class MovieViewController {
                     logger.debug("Retrieved movie: {}", movie.getTitle());
                     model.addAttribute("movie", movie);
 
-                    // **ADD THIS CREW DEBUGGING**
                     if (movie.getCrew() != null) {
                         logger.info("CONTROLLER - Crew data exists for movie: {}", movie.getTitle());
                         logger.info("CONTROLLER - Directors: {}",
@@ -191,7 +179,6 @@ public class MovieViewController {
                         logger.warn("CONTROLLER - Movie {} has NULL crew data", movie.getTitle());
                     }
 
-                    // Add cast filtering (existing code)
                     if (movie.getCast() != null && !movie.getCast().isEmpty()) {
                         model.addAttribute("heroes", movie.getCast().stream()
                                 .filter(c -> "Hero".equals(c.getRole())).collect(Collectors.toList()));
@@ -205,7 +192,6 @@ public class MovieViewController {
                         model.addAttribute("supportingCast", List.of());
                     }
 
-                    // Add OTT platform grouping (existing code)
                     if (movie.getOttPlatforms() != null && !movie.getOttPlatforms().isEmpty()) {
                         Map<String, List<OttPlatformDto>> platformsByType = movie.getOttPlatforms().stream()
                                 .collect(Collectors.groupingBy(OttPlatformDto::getSubscriptionType));
@@ -232,7 +218,6 @@ public class MovieViewController {
                                     BindingResult bindingResult, Model model, Principal principal) {
         logger.info("Attempting to create new movie: {}", movieRequestDto.getTitle());
 
-        // Add current user to model if authenticated (for error cases)
         if (principal != null) {
             model.addAttribute("currentUser", principal.getName());
         }
@@ -260,7 +245,6 @@ public class MovieViewController {
                                     BindingResult bindingResult, Model model, Principal principal) {
         logger.info("Attempting to update movie ID: {}", movieId);
 
-        // Add current user to model if authenticated (for error cases)
         if (principal != null) {
             model.addAttribute("currentUser", principal.getName());
         }
@@ -306,7 +290,6 @@ public class MovieViewController {
     public Mono<String> getDetailedMovieById(@PathVariable String movieId, Model model, Principal principal) {
         logger.info("Fetching detailed movie information for ID: {}", movieId);
 
-        // Add current user to model if authenticated
         if (principal != null) {
             model.addAttribute("currentUser", principal.getName());
             logger.debug("User {} accessing detailed movie view for {}", principal.getName(), movieId);
@@ -317,7 +300,6 @@ public class MovieViewController {
                     logger.debug("Retrieved movie: {}", movie.getTitle());
                     model.addAttribute("movie", movie);
 
-                    // Add basic cast information if available
                     if (movie.getCast() != null && !movie.getCast().isEmpty()) {
                         List<CastMemberDto> heroes = movie.getCast().stream()
                                 .filter(c -> "Hero".equals(c.getRole()))
@@ -334,7 +316,6 @@ public class MovieViewController {
                         model.addAttribute("supportingCast", supporting);
                     }
 
-                    // Add OTT platform information if available
                     if (movie.getOttPlatforms() != null && !movie.getOttPlatforms().isEmpty()) {
                         Map<String, List<OttPlatformDto>> platformsByType = movie.getOttPlatforms().stream()
                                 .collect(Collectors.groupingBy(OttPlatformDto::getSubscriptionType));
@@ -361,8 +342,6 @@ public class MovieViewController {
         return movieService.getMovieById(movieId)
                 .doOnNext(movie -> logger.debug("Found movie to enrich: {}", movie.getTitle()))
                 .flatMap(movie -> {
-                    // For now, we'll just update the movie with some mock enriched data
-                    // Later you can implement actual TMDb integration
                     return movieService.updateMovieRating(movieId, movie.getAverageRating());
                 })
                 .doOnSuccess(enrichedMovie -> logger.info("Successfully enriched movie: {}", enrichedMovie.getTitle()))

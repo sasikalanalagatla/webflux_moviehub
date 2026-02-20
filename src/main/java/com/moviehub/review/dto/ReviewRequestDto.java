@@ -1,5 +1,3 @@
-
-// Also check your ReviewRequestDto has proper validation
 package com.moviehub.review.dto;
 
 import jakarta.validation.constraints.*;

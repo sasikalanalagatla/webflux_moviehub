@@ -39,7 +39,7 @@ public class AuthController {
             model.addAttribute("message", "You have been logged out successfully");
         }
         if (success != null) {
-            model.addAttribute("success", success); // Display the decoded message
+            model.addAttribute("success", success);
         }
         return Mono.just("login");
     }
@@ -63,7 +63,6 @@ public class AuthController {
 
         return userService.registerUser(userRegistrationDto)
                 .then(Mono.fromCallable(() -> {
-                    // URL encode the success message
                     try {
                         String encodedMessage = URLEncoder.encode("Registration successful! Please login.", StandardCharsets.UTF_8.toString());
                         return "redirect:/login?success=" + encodedMessage;

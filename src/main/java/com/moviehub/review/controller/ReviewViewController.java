@@ -81,7 +81,6 @@ public class ReviewViewController {
                                        @RequestParam(required = false) String searchQuery) {
         logger.info("Displaying create review form with search: {}", searchQuery);
 
-        // Add current user to model if authenticated
         if (principal != null) {
             model.addAttribute("currentUser", principal.getName());
             logger.debug("User {} accessing create review form", principal.getName());

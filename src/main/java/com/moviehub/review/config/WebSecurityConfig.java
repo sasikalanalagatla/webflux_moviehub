@@ -25,36 +25,27 @@ public class WebSecurityConfig {
     @Bean
     public SecurityWebFilterChain filterChain(ServerHttpSecurity http) {
         return http
-                .csrf(ServerHttpSecurity.CsrfSpec::disable) // Disable CSRF for simplicity
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(auth -> auth
-                        // ===== PUBLIC ACCESS - No authentication required =====
                         .pathMatchers("/register", "/registration", "/login", "/css/**", "/js/**", "/images/**",
                                 "/favicon.ico", "/error").permitAll()
 
-                        // Public viewing of content
                         .pathMatchers("/", "/movie/", "/movie/all", "/movie/*/detailed", "/movie/*",
                                 "/reviews", "/reviews/*").permitAll()
 
-                        // ===== AUTHENTICATED USERS ONLY - All review operations =====
-                        // Users can create reviews (must be logged in)
                         .pathMatchers("/reviews/create").hasAnyRole("USER", "AUTHOR", "ADMIN")
 
-                        // Users can edit/update/delete their own reviews, admins can edit any
                         .pathMatchers("/reviews/edit/**", "/reviews/update/**", "/reviews/delete/**")
                         .hasAnyRole("USER", "AUTHOR", "ADMIN")
 
-                        // ===== AUTHOR ROLE - Can create and manage movies they created =====
                         .pathMatchers("/movie/add", "/movie/save").hasAnyRole("AUTHOR", "ADMIN")
                         .pathMatchers("/movie/edit/**", "/movie/update/**", "/movie/*/enrich")
                         .hasAnyRole("AUTHOR", "ADMIN")
 
-                        // ===== ADMIN ROLE - Full access to everything =====
                         .pathMatchers("/movie/delete/**", "/admin/**", "/management/**").hasRole("ADMIN")
 
-                        // User management (admin only)
                         .pathMatchers("/users/**", "/roles/**").hasRole("ADMIN")
 
-                        // ===== DEFAULT - All other paths require authentication =====
                         .anyExchange().authenticated()
                 )
                 .formLogin(form -> form

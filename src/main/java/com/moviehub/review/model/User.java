@@ -26,7 +26,6 @@ public class User {
     private boolean enabled = true;
     private LocalDateTime createdAt;
 
-    // Default constructor
     public User() {
         this.createdAt = LocalDateTime.now();
     }}

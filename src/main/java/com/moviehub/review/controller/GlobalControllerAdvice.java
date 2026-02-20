@@ -7,22 +7,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.security.Principal;
 
-/**
- * Global controller advice to automatically add common model attributes
- * to all controller responses across the application.
- */
 @ControllerAdvice
 public class GlobalControllerAdvice {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalControllerAdvice.class);
 
-    /**
-     * Automatically adds the current authenticated user to all models.
-     * This eliminates the need to manually add authentication info in each controller method.
-     *
-     * @param principal The current authenticated user principal
-     * @return The username if authenticated, null otherwise
-     */
     @ModelAttribute("currentUser")
     public String getCurrentUser(Principal principal) {
         if (principal != null) {

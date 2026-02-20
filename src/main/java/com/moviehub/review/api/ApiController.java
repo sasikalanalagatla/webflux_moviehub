@@ -25,7 +25,6 @@ public class ApiController {
     @Autowired
     private ReviewService reviewService;
 
-    // Movie API endpoints
     @GetMapping("/movies")
     public Flux<MovieResponseDto> getAllMovies() {
         return movieService.getALlMovies();
@@ -66,7 +65,6 @@ public class ApiController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    // Review API endpoints
     @GetMapping("/reviews")
     public Flux<ReviewResponseDto> getAllReviews() {
         return reviewService.getAllReviews();
@@ -105,7 +103,6 @@ public class ApiController {
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    // Statistics endpoints
     @GetMapping("/movies/{movieId}/average-rating")
     public Mono<ResponseEntity<Double>> getMovieAverageRating(@PathVariable String movieId) {
         return reviewService.calculateAverageRatingForMovie(movieId)
