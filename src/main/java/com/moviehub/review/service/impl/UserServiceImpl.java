@@ -68,8 +68,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsername(username);
     }
 
-
-
     @Override
     public Mono<Boolean> isUsernameExists(String username) {
         return userRepository.existsByUsername(username);
