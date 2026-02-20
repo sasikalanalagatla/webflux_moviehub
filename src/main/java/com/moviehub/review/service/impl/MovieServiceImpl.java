@@ -65,7 +65,6 @@ public class MovieServiceImpl implements MovieService {
         boolean isReleased = releaseDate.isBefore(today) || releaseDate.isEqual(today);
         movie.setReleased(isReleased);
 
-        // **FIX: Initialize crew info to prevent null pointer exceptions**
         if (movie.getCrew() == null) {
             movie.setCrew(new CrewInfo());
         }
@@ -88,7 +87,7 @@ public class MovieServiceImpl implements MovieService {
                 .switchIfEmpty(Mono.error(new MovieNotFoundException("Movie not found with movieId: " + movieId)))
                 .doOnNext(movie -> logger.debug("Retrieved movie: {}", movie.getTitle()))
                 .doOnError(error -> logger.error("Error fetching movie {}: {}", movieId, error.getMessage()))
-                .map(this::ensureCrewInfoExists) // **FIX: Ensure crew info exists**
+                .map(this::ensureCrewInfoExists)
                 .map(MovieMapper::toDto);
     }
 
@@ -99,7 +98,7 @@ public class MovieServiceImpl implements MovieService {
         return movieRepository.findAll()
                 .doOnComplete(() -> logger.debug("Completed fetching all movies"))
                 .doOnError(error -> logger.error("Error fetching all movies: {}", error.getMessage(), error))
-                .map(this::ensureCrewInfoExists) // **FIX: Ensure crew info exists**
+                .map(this::ensureCrewInfoExists)
                 .map(MovieMapper::toDto);
     }
 
@@ -124,7 +123,6 @@ public class MovieServiceImpl implements MovieService {
                     boolean isReleased = releaseDate.isBefore(today) || releaseDate.isEqual(today);
                     existingMovie.setReleased(isReleased);
 
-                    // **FIX: Ensure crew info exists during update**
                     if (existingMovie.getCrew() == null) {
                         existingMovie.setCrew(new CrewInfo());
                     }
@@ -178,7 +176,7 @@ public class MovieServiceImpl implements MovieService {
                                 g.toLowerCase().contains(genre.toLowerCase())))
                 .doOnComplete(() -> logger.debug("Completed genre search for: {}", genre))
                 .doOnError(error -> logger.error("Error finding movies by genre {}: {}", genre, error.getMessage(), error))
-                .map(this::ensureCrewInfoExists) // **FIX: Ensure crew info exists**
+                .map(this::ensureCrewInfoExists)
                 .map(MovieMapper::toDto);
     }
 
@@ -194,7 +192,7 @@ public class MovieServiceImpl implements MovieService {
         return createMovie(dto);
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 0 * * *") //daily sync up at mid night 12
     public void syncTeluguMoviesDaily() {
         if (tmdbApiKey == null || tmdbApiKey.isBlank()) {
             logger.warn("TMDb API key not configured, skipping Telugu movie sync");
@@ -206,7 +204,7 @@ public class MovieServiceImpl implements MovieService {
         WebClient client = webClientBuilder.baseUrl(tmdbBaseUrl).build();
         int currentYear = LocalDate.now().getYear();
         int startYear = 1990;
-        int endYear = currentYear + 10;
+        int endYear = currentYear + 15;
 
         List<Integer> yearsToSync = new ArrayList<>();
         for (int year = startYear; year <= endYear; year++) {
@@ -247,12 +245,11 @@ public class MovieServiceImpl implements MovieService {
                     logger.info("Movie enrichment completed for: {}", movie.getTitle());
                     return Mono.just(movie);
                 })
-                .map(this::ensureCrewInfoExists) // **FIX: Ensure crew info exists**
+                .map(this::ensureCrewInfoExists)
                 .map(MovieMapper::toDto)
                 .doOnError(error -> logger.error("Error enriching movie {}: {}", movieId, error.getMessage(), error));
     }
 
-    // **NEW: Helper method to ensure CrewInfo is properly initialized**
     private Movie ensureCrewInfoExists(Movie movie) {
         if (movie.getCrew() == null) {
             movie.setCrew(createEmptyCrewInfo());
@@ -283,14 +280,12 @@ public class MovieServiceImpl implements MovieService {
     private Movie createMovieFromTmdbData(Map<String, Object> tmdbData) {
         Movie movie = new Movie();
 
-        // Basic info
         movie.setTitle((String) tmdbData.get("original_title"));
         movie.setOverview((String) tmdbData.get("overview"));
         movie.setTmdbId(String.valueOf(tmdbData.get("id")));
         movie.setImdbId((String) tmdbData.get("imdb_id"));
         movie.setRuntime((Integer) tmdbData.get("runtime"));
 
-        // Poster and backdrop
         String posterPath = (String) tmdbData.get("poster_path");
         if (posterPath != null) {
             movie.setPosterUrl("https://image.tmdb.org/t/p/w500" + posterPath);
@@ -301,7 +296,6 @@ public class MovieServiceImpl implements MovieService {
             movie.setBackdropUrl("https://image.tmdb.org/t/p/w1280" + backdropPath);
         }
 
-        // Release date
         String releaseDate = (String) tmdbData.get("release_date");
         if (releaseDate != null && !releaseDate.isEmpty()) {
             try {
@@ -314,17 +308,15 @@ public class MovieServiceImpl implements MovieService {
             }
         }
 
-        // **FIX: Extract cast and crew with null safety**
         Map<String, Object> credits = (Map<String, Object>) tmdbData.get("credits");
         if (credits != null) {
             movie.setCast(extractCastMembers(credits));
             movie.setCrew(extractCrewInfo(credits));
         } else {
             movie.setCast(Collections.emptyList());
-            movie.setCrew(createEmptyCrewInfo()); // **FIX: Use helper method**
+            movie.setCrew(createEmptyCrewInfo());
         }
 
-        // Extract OTT platforms
         Map<String, Object> watchProviders = (Map<String, Object>) tmdbData.get("watch/providers");
         if (watchProviders != null) {
             movie.setOttPlatforms(extractOttPlatforms(watchProviders));
@@ -343,7 +335,7 @@ public class MovieServiceImpl implements MovieService {
         if (cast == null) return Collections.emptyList();
 
         return cast.stream()
-                .limit(20) // Limit to top 20 cast members
+                .limit(20)
                 .map(castData -> {
                     CastMember member = new CastMember();
                     member.setName((String) castData.get("name"));
@@ -355,26 +347,24 @@ public class MovieServiceImpl implements MovieService {
                         member.setProfileUrl("https://image.tmdb.org/t/p/w185" + profilePath);
                     }
 
-                    // **FIX: Use gender information instead of order**
                     Integer gender = (Integer) castData.get("gender");
                     Integer order = (Integer) castData.get("order");
 
                     if (gender != null && order != null) {
-                        if (order <= 2) { // Main leads (top 2 billing)
-                            if (gender == 2) { // Gender 2 = Male in TMDB
+                        if (order <= 2) {
+                            if (gender == 2) {
                                 member.setRole("Hero");
-                            } else if (gender == 1) { // Gender 1 = Female in TMDB
+                            } else if (gender == 1) {
                                 member.setRole("Heroine");
                             } else {
-                                member.setRole("Supporting"); // Unknown gender
+                                member.setRole("Supporting");
                             }
-                        } else if (order <= 10) { // Supporting cast
+                        } else if (order <= 10) {
                             member.setRole("Supporting");
                         } else {
                             member.setRole("Other");
                         }
                     } else {
-                        // Fallback for missing data
                         member.setRole("Supporting");
                     }
 
@@ -386,15 +376,13 @@ public class MovieServiceImpl implements MovieService {
 
     private CrewInfo extractCrewInfo(Map<String, Object> credits) {
         List<Map<String, Object>> crew = (List<Map<String, Object>>) credits.get("crew");
-        if (crew == null) return createEmptyCrewInfo(); // **FIX: Use helper method**
+        if (crew == null) return createEmptyCrewInfo();
 
         CrewInfo crewInfo = new CrewInfo();
 
-        // Group crew members by department
         Map<String, List<Map<String, Object>>> crewByDept = crew.stream()
                 .collect(Collectors.groupingBy(c -> (String) c.get("department")));
 
-        // Extract different roles with null safety
         crewInfo.setDirectors(extractCrewByJob(crewByDept.get("Directing"), "Director"));
         crewInfo.setProducers(extractCrewByJob(crewByDept.get("Production"), "Producer"));
         crewInfo.setWriters(extractCrewByJob(crewByDept.get("Writing"), null));
@@ -425,8 +413,6 @@ public class MovieServiceImpl implements MovieService {
                 })
                 .collect(Collectors.toList());
     }
-
-    // [Rest of the methods remain the same...]
 
     private Mono<Void> syncAllTeluguMoviesByYear(WebClient client, int year) {
         return fetchTeluguMoviesPage(client, year, 1)
@@ -511,7 +497,6 @@ public class MovieServiceImpl implements MovieService {
                 return Mono.empty();
             }
 
-            // **FIX: Check for duplicates by both title AND TMDb ID**
             return Mono.zip(
                             movieRepository.findByTitleIgnoreCase(movieTitle).hasElement(),
                             movieRepository.findByTmdbId(tmdbId).hasElement()
@@ -528,9 +513,8 @@ public class MovieServiceImpl implements MovieService {
                         return fetchCompleteMovieDataFromTmdb(tmdbId)
                                 .flatMap(completeData -> {
                                     Movie movie = createMovieFromTmdbData(completeData);
-                                    movie.setTmdbId(tmdbId); // Ensure TMDb ID is set
+                                    movie.setTmdbId(tmdbId);
 
-                                    // **FIX: Validate movie before saving**
                                     if (movie.getTitle() == null || movie.getTitle().isBlank()) {
                                         logger.warn("Created movie has null/empty title, skipping save for TMDb ID: {}", tmdbId);
                                         return Mono.empty();
@@ -539,7 +523,6 @@ public class MovieServiceImpl implements MovieService {
                                     return movieRepository.save(movie);
                                 })
                                 .doOnSuccess(saved -> {
-                                    // **FIX: Null-safe logging**
                                     if (saved != null && saved.getTitle() != null) {
                                         logger.debug("Successfully saved new movie: {}", saved.getTitle());
                                     } else {
@@ -550,7 +533,6 @@ public class MovieServiceImpl implements MovieService {
                                     logger.error("Failed to save movie with TMDb ID {}: {}", tmdbId, error.getMessage());
                                 })
                                 .onErrorResume(error -> {
-                                    // **FIX: Continue processing other movies on error**
                                     logger.debug("Continuing sync despite error for TMDb ID: {}", tmdbId);
                                     return Mono.empty();
                                 })
@@ -576,7 +558,7 @@ public class MovieServiceImpl implements MovieService {
                 .uri("/movie/{id}?api_key={apiKey}&append_to_response=credits,watch/providers,keywords", tmdbId, tmdbApiKey)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .timeout(Duration.ofSeconds(15)) // Increase timeout
+                .timeout(Duration.ofSeconds(15))
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(2))
                         .filter(throwable ->
                                 throwable instanceof SocketException ||
@@ -591,7 +573,7 @@ public class MovieServiceImpl implements MovieService {
                 })
                 .onErrorResume(error -> {
                     logger.warn("Failed to fetch TMDb data for movie {} after all retries: {}", tmdbId, error.getMessage());
-                    return Mono.empty(); // Continue with next movie
+                    return Mono.empty();
                 });
     }
 
@@ -604,7 +586,6 @@ public class MovieServiceImpl implements MovieService {
 
         List<OttPlatform> platforms = new ArrayList<>();
 
-        // Extract platforms for regions
         for (String region : List.of("IN", "US")) {
             Map<String, Object> regionData = (Map<String, Object>) results.get(region);
             if (regionData != null) {
@@ -618,7 +599,6 @@ public class MovieServiceImpl implements MovieService {
     private List<OttPlatform> extractPlatformsForRegion(Map<String, Object> regionData, String region) {
         List<OttPlatform> platforms = new ArrayList<>();
 
-        // Extract streaming platforms
         List<Map<String, Object>> flatrate = (List<Map<String, Object>>) regionData.get("flatrate");
         if (flatrate != null) {
             platforms.addAll(flatrate.stream()
@@ -626,7 +606,6 @@ public class MovieServiceImpl implements MovieService {
                     .toList());
         }
 
-        // Extract rental platforms
         List<Map<String, Object>> rent = (List<Map<String, Object>>) regionData.get("rent");
         if (rent != null) {
             platforms.addAll(rent.stream()
@@ -634,7 +613,6 @@ public class MovieServiceImpl implements MovieService {
                     .toList());
         }
 
-        // Extract purchase platforms
         List<Map<String, Object>> buy = (List<Map<String, Object>>) regionData.get("buy");
         if (buy != null) {
             platforms.addAll(buy.stream()

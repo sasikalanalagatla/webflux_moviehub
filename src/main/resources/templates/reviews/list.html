@@ -1,94 +1,116 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MovieHub - All Reviews</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  lang="en"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MovieHub - All Reviews</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
         background: #0f0f23;
         color: white;
         line-height: 1.6;
         min-height: 100vh;
-    }
+      }
 
-    .header {
-        background: linear-gradient(135deg, rgba(30, 60, 114, 0.9), rgba(42, 82, 152, 0.9));
+      .header {
+        background: linear-gradient(
+          135deg,
+          rgba(30, 60, 114, 0.9),
+          rgba(42, 82, 152, 0.9)
+        );
         backdrop-filter: blur(10px);
         padding: 1rem 0;
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-    }
-    .nav-container {
+      }
+      .nav-container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 0 2rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-    }
-    .logo {
+      }
+      .logo {
         font-size: 2rem;
         font-weight: 700;
         color: #ff6b6b;
         text-decoration: none;
-    }
-    .nav-links {
+      }
+      .nav-links {
         display: flex;
         gap: 2rem;
         list-style: none;
-    }
-    .nav-links a {
+      }
+      .nav-links a {
         color: white;
         text-decoration: none;
         font-weight: 500;
         padding: 0.5rem 1rem;
         border-radius: 25px;
         transition: all 0.3s ease;
-    }
-    .nav-links a:hover, .nav-links a.active {
+      }
+      .nav-links a:hover,
+      .nav-links a.active {
         background: rgba(255, 107, 107, 0.2);
         color: #ff6b6b;
-    }
+      }
 
-    /* Authentication Section */
-    .nav-auth {
+      /* Authentication Section */
+      .nav-auth {
         display: flex;
         align-items: center;
         gap: 1rem;
-    }
+      }
 
-    /* Authenticated User Styles */
-    .auth-user {
+      /* Authenticated User Styles */
+      .auth-user {
         display: flex;
         align-items: center;
         gap: 1rem;
-    }
-    .user-greeting {
+      }
+      .user-greeting {
         display: flex;
         align-items: center;
         gap: 0.5rem;
         color: white;
         font-weight: 500;
         font-size: 0.95rem;
-    }
-    .user-greeting i {
+      }
+      .user-greeting i {
         color: #4ecdc4;
         font-size: 1.1rem;
-    }
-    .user-name {
+      }
+      .user-name {
         color: #4ecdc4;
         font-weight: 600;
-    }
+      }
 
-    /* Logout Button */
-    .logout-form {
+      /* Logout Button */
+      .logout-form {
         display: inline;
         margin: 0;
-    }
-    .logout-btn {
+      }
+      .logout-btn {
         background: linear-gradient(135deg, #ff6b6b, #ee5a52);
         color: white;
         border: none;
@@ -101,19 +123,19 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-    }
-    .logout-btn:hover {
+      }
+      .logout-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
-    }
+      }
 
-    /* Guest Login Styles */
-    .auth-guest {
+      /* Guest Login Styles */
+      .auth-guest {
         display: flex;
         align-items: center;
         gap: 1rem;
-    }
-    .login-btn {
+      }
+      .login-btn {
         background: linear-gradient(135deg, #4ecdc4, #44a08d);
         color: white;
         text-decoration: none;
@@ -125,55 +147,55 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-    }
-    .login-btn:hover {
+      }
+      .login-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
-    }
-    .register-link {
+      }
+      .register-link {
         color: white;
         text-decoration: none;
         font-weight: 500;
         transition: color 0.3s ease;
         font-size: 0.9rem;
-    }
-    .register-link:hover {
+      }
+      .register-link:hover {
         color: #4ecdc4;
-    }
+      }
 
-    .container {
+      .container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 2rem;
-    }
+      }
 
-    .page-header {
+      .page-header {
         text-align: center;
         margin-bottom: 3rem;
-    }
-    .page-title {
+      }
+      .page-title {
         font-size: 3.5rem;
         font-weight: 700;
         background: linear-gradient(135deg, #667eea, #764ba2);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0.5rem;
-    }
-    .page-subtitle {
+      }
+      .page-subtitle {
         font-size: 1.3rem;
         opacity: 0.8;
         color: #a0a0a0;
         margin-bottom: 2rem;
-    }
+      }
 
-    .page-actions {
+      .page-actions {
         display: flex;
         gap: 1rem;
         justify-content: center;
         margin-bottom: 3rem;
         flex-wrap: wrap;
-    }
-    .btn {
+      }
+      .btn {
         padding: 1rem 2rem;
         border: none;
         border-radius: 50px;
@@ -187,29 +209,29 @@
         gap: 0.5rem;
         min-width: 160px;
         justify-content: center;
-    }
-    .btn-primary {
+      }
+      .btn-primary {
         background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
         box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-    }
-    .btn-primary:hover {
+      }
+      .btn-primary:hover {
         transform: translateY(-3px);
         box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
-    }
-    .btn-secondary {
+      }
+      .btn-secondary {
         background: rgba(255, 255, 255, 0.1);
         color: white;
         border: 2px solid rgba(255, 255, 255, 0.2);
         box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
-    }
-    .btn-secondary:hover {
+      }
+      .btn-secondary:hover {
         background: rgba(255, 255, 255, 0.2);
         transform: translateY(-3px);
         box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
-    }
+      }
 
-    .alert {
+      .alert {
         padding: 1rem 2rem;
         border-radius: 15px;
         margin-bottom: 2rem;
@@ -218,44 +240,44 @@
         justify-content: center;
         gap: 0.5rem;
         font-weight: 500;
-    }
-    .alert-success {
+      }
+      .alert-success {
         background: rgba(34, 197, 94, 0.2);
         border: 1px solid rgba(34, 197, 94, 0.3);
         color: #22c55e;
-    }
-    .alert-info {
+      }
+      .alert-info {
         background: rgba(59, 130, 246, 0.2);
         border: 1px solid rgba(59, 130, 246, 0.3);
         color: #3b82f6;
-    }
+      }
 
-    .auth-required-message {
+      .auth-required-message {
         text-align: center;
         padding: 2rem;
         background: rgba(255, 215, 0, 0.1);
         border-radius: 15px;
         margin: 2rem 0;
         border: 1px solid rgba(255, 215, 0, 0.3);
-    }
-    .auth-required-message i {
+      }
+      .auth-required-message i {
         font-size: 2rem;
         color: #ffd700;
         margin-bottom: 1rem;
-    }
-    .auth-required-message h3 {
+      }
+      .auth-required-message h3 {
         color: #ffd700;
         margin-bottom: 1rem;
-    }
+      }
 
-    .reviews-stats {
+      .reviews-stats {
         display: flex;
         justify-content: center;
         gap: 2rem;
         margin-bottom: 3rem;
         flex-wrap: wrap;
-    }
-    .stat-card {
+      }
+      .stat-card {
         background: rgba(255, 255, 255, 0.05);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -263,26 +285,26 @@
         padding: 1.5rem 2rem;
         text-align: center;
         min-width: 150px;
-    }
-    .stat-number {
+      }
+      .stat-number {
         font-size: 2rem;
         font-weight: 700;
         background: linear-gradient(135deg, #667eea, #764ba2);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-    }
-    .stat-label {
+      }
+      .stat-label {
         font-size: 0.9rem;
         opacity: 0.8;
         margin-top: 0.5rem;
-    }
+      }
 
-    .reviews-grid {
+      .reviews-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
         gap: 2rem;
-    }
-    .review-card {
+      }
+      .review-card {
         background: rgba(255, 255, 255, 0.05);
         backdrop-filter: blur(15px);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -291,32 +313,32 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
-    }
-    .review-card::before {
-        content: '';
+      }
+      .review-card::before {
+        content: "";
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         height: 4px;
         background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-    }
-    .review-card:hover {
+      }
+      .review-card:hover {
         transform: translateY(-8px);
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-    }
+      }
 
-    .review-header {
+      .review-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 1rem;
         gap: 1rem;
-    }
-    .movie-info {
+      }
+      .movie-info {
         flex: 1;
-    }
-    .movie-name {
+      }
+      .movie-name {
         font-size: 1.4rem;
         font-weight: 600;
         color: #667eea;
@@ -326,29 +348,29 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-    }
-    .movie-link {
+      }
+      .movie-link {
         color: #667eea;
         text-decoration: none;
         transition: all 0.3s ease;
-    }
-    .movie-link:hover {
+      }
+      .movie-link:hover {
         color: #4c51bf;
         text-decoration: underline;
-    }
+      }
 
-    .rating-section {
+      .rating-section {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 0.5rem;
-    }
-    .stars-display {
+      }
+      .stars-display {
         font-size: 1.5rem;
         color: #ffd700;
         filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.3));
-    }
-    .rating-badge {
+      }
+      .rating-badge {
         background: linear-gradient(135deg, #ffd700, #ffb700);
         color: #8b4513;
         padding: 0.4rem 0.8rem;
@@ -356,16 +378,16 @@
         font-weight: 700;
         font-size: 0.9rem;
         box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
-    }
+      }
 
-    .reviewer-info {
+      .reviewer-info {
         display: flex;
         align-items: center;
         gap: 0.8rem;
         margin-bottom: 1rem;
         opacity: 0.8;
-    }
-    .reviewer-avatar {
+      }
+      .reviewer-avatar {
         width: 40px;
         height: 40px;
         border-radius: 50%;
@@ -375,20 +397,20 @@
         justify-content: center;
         color: white;
         font-size: 1.2rem;
-    }
-    .reviewer-details {
+      }
+      .reviewer-details {
         flex: 1;
-    }
-    .reviewer-name {
+      }
+      .reviewer-name {
         font-weight: 600;
         color: #f0f0f0;
-    }
-    .review-date {
+      }
+      .review-date {
         font-size: 0.9rem;
         opacity: 0.7;
-    }
+      }
 
-    .review-comment {
+      .review-comment {
         color: #e0e0e0;
         line-height: 1.7;
         margin-bottom: 1.5rem;
@@ -398,53 +420,53 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         position: relative;
-    }
-    .review-comment.expanded {
+      }
+      .review-comment.expanded {
         -webkit-line-clamp: unset;
-    }
+      }
 
-    .review-actions {
+      .review-actions {
         display: flex;
         gap: 0.8rem;
         justify-content: flex-end;
         flex-wrap: wrap;
-    }
-    .btn-sm {
+      }
+      .btn-sm {
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
         border-radius: 25px;
         min-width: auto;
         gap: 0.3rem;
-    }
-    .btn-view {
+      }
+      .btn-view {
         background: rgba(102, 126, 234, 0.2);
         color: #667eea;
         border: 1px solid rgba(102, 126, 234, 0.3);
-    }
-    .btn-view:hover {
+      }
+      .btn-view:hover {
         background: rgba(102, 126, 234, 0.3);
         transform: translateY(-2px);
-    }
-    .btn-warning {
+      }
+      .btn-warning {
         background: rgba(243, 156, 18, 0.2);
         color: #f39c12;
         border: 1px solid rgba(243, 156, 18, 0.3);
-    }
-    .btn-warning:hover {
+      }
+      .btn-warning:hover {
         background: rgba(243, 156, 18, 0.3);
         transform: translateY(-2px);
-    }
-    .btn-danger {
+      }
+      .btn-danger {
         background: rgba(239, 68, 68, 0.2);
         color: #ef4444;
         border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-    .btn-danger:hover {
+      }
+      .btn-danger:hover {
         background: rgba(239, 68, 68, 0.3);
         transform: translateY(-2px);
-    }
+      }
 
-    .empty-state {
+      .empty-state {
         text-align: center;
         padding: 4rem 2rem;
         background: rgba(255, 255, 255, 0.05);
@@ -453,309 +475,372 @@
         border-radius: 25px;
         max-width: 600px;
         margin: 0 auto;
-    }
-    .empty-icon {
+      }
+      .empty-icon {
         font-size: 5rem;
         color: #667eea;
         margin-bottom: 1.5rem;
         opacity: 0.7;
-    }
-    .empty-title {
+      }
+      .empty-title {
         font-size: 2rem;
         font-weight: 600;
         margin-bottom: 1rem;
         color: #f0f0f0;
-    }
-    .empty-message {
+      }
+      .empty-message {
         font-size: 1.1rem;
         opacity: 0.8;
         margin-bottom: 2rem;
         line-height: 1.6;
-    }
+      }
 
-    .load-more {
+      .load-more {
         text-align: center;
         margin-top: 3rem;
-    }
+      }
 
-    @media (max-width: 768px) {
-        .nav-links { display: none; }
+      @media (max-width: 768px) {
+        .nav-links {
+          display: none;
+        }
         .nav-auth {
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: flex-end;
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: flex-end;
         }
         .auth-user {
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: flex-end;
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: flex-end;
         }
         .user-greeting {
-            font-size: 0.85rem;
+          font-size: 0.85rem;
         }
-        .logout-btn, .login-btn {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
+        .logout-btn,
+        .login-btn {
+          padding: 0.4rem 0.8rem;
+          font-size: 0.8rem;
         }
         .auth-guest {
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: flex-end;
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: flex-end;
         }
         .reviews-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
         }
         .review-card {
-            padding: 1.5rem;
+          padding: 1.5rem;
         }
         .page-title {
-            font-size: 2.5rem;
+          font-size: 2.5rem;
         }
         .review-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1rem;
         }
         .rating-section {
-            align-self: flex-start;
-            flex-direction: row;
-            gap: 1rem;
+          align-self: flex-start;
+          flex-direction: row;
+          gap: 1rem;
         }
         .page-actions {
-            flex-direction: column;
-            align-items: center;
+          flex-direction: column;
+          align-items: center;
         }
         .reviews-stats {
-            gap: 1rem;
+          gap: 1rem;
         }
         .stat-card {
-            min-width: 120px;
-            padding: 1rem 1.5rem;
+          min-width: 120px;
+          padding: 1rem 1.5rem;
         }
 
         /* Mobile Authentication Menu */
         .nav-container {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: center;
+          flex-direction: column;
+          gap: 1rem;
+          align-items: center;
         }
-    }
+      }
 
-    @media (max-width: 480px) {
+      @media (max-width: 480px) {
         .container {
-            padding: 1rem;
+          padding: 1rem;
         }
         .page-title {
-            font-size: 2rem;
+          font-size: 2rem;
         }
         .review-actions {
-            justify-content: center;
+          justify-content: center;
         }
         .reviews-stats {
-            flex-direction: column;
-            align-items: center;
+          flex-direction: column;
+          align-items: center;
         }
-    }
-  </style>
-</head>
-<body>
-<header class="header">
-  <div class="nav-container">
-    <a href="/movie/" class="logo">🎬 MovieHub</a>
-    <ul class="nav-links">
-      <li><a href="/movie/">Home</a></li>
-      <li><a href="/movie/all">Movies</a></li>
-      <li><a href="/reviews" class="active">Reviews</a></li>
-      <li><a href="/movie/add">Add Movie</a></li>
-    </ul>
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="nav-container">
+        <a href="/movie/" class="logo">🎬 MovieHub</a>
+        <ul class="nav-links">
+          <li><a href="/movie/">Home</a></li>
+          <li><a href="/movie/all">Movies</a></li>
+          <li><a href="/reviews" class="active">Reviews</a></li>
+          <li><a href="/movie/add">Add Movie</a></li>
+        </ul>
 
-    <!-- Authentication Section -->
-    <div class="nav-auth">
-      <!-- Show when user is authenticated -->
-      <div th:if="${currentUser}" class="auth-user">
-        <div class="user-greeting">
-          <i class="fas fa-user-circle"></i>
-          <span>Hello, <span class="user-name" th:text="${currentUser}">Username</span></span>
-        </div>
-        <form th:action="@{/logout}" method="post" class="logout-form">
-          <button type="submit" class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i>
-            Logout
-          </button>
-        </form>
-      </div>
+        <!-- Authentication Section -->
+        <div class="nav-auth">
+          <!-- Show when user is authenticated -->
+          <div th:if="${currentUser}" class="auth-user">
+            <div class="user-greeting">
+              <i class="fas fa-user-circle"></i>
+              <span
+                >Hello,
+                <span class="user-name" th:text="${currentUser}"
+                  >Username</span
+                ></span
+              >
+            </div>
+            <form th:action="@{/logout}" method="post" class="logout-form">
+              <button type="submit" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+              </button>
+            </form>
+          </div>
 
-      <!-- Show when user is not authenticated -->
-      <div th:unless="${currentUser}" class="auth-guest">
-        <a href="/login" class="login-btn">
-          <i class="fas fa-sign-in-alt"></i>
-          Login
-        </a>
-        <a href="/register" class="register-link">
-          <i class="fas fa-user-plus"></i>
-          Register
-        </a>
-      </div>
-    </div>
-  </div>
-</header>
-
-<div class="container">
-  <div class="page-header">
-    <h1 class="page-title">⭐ Movie Reviews</h1>
-    <p class="page-subtitle">Discover what movie enthusiasts are saying about their favorite films</p>
-  </div>
-
-  <div class="page-actions">
-    <!-- Only show Write Review button for authenticated users -->
-    <a th:if="${currentUser}" th:href="@{/reviews/create}" class="btn btn-primary">
-      <i class="fas fa-plus"></i>
-      Write Review
-    </a>
-    <a href="/movie/all" class="btn btn-secondary">
-      <i class="fas fa-film"></i>
-      Browse Movies
-    </a>
-  </div>
-
-  <!-- Success/Info Messages -->
-  <div class="alert alert-success" th:if="${successMessage}">
-    <i class="fas fa-check-circle"></i>
-    <span th:text="${successMessage}">Success message</span>
-  </div>
-
-  <div class="alert alert-info" th:if="${message}">
-    <i class="fas fa-info-circle"></i>
-    <span th:text="${message}">Info message</span>
-  </div>
-
-  <!-- Reviews Stats -->
-  <div class="reviews-stats" th:if="${reviews != null and !reviews.empty}">
-    <div class="stat-card">
-      <div class="stat-number" th:text="${#lists.size(reviews)}">0</div>
-      <div class="stat-label">Total Reviews</div>
-    </div>
-    <div class="stat-card" th:if="${movieTitles != null}">
-      <div class="stat-number" th:text="${#maps.size(movieTitles)}">0</div>
-      <div class="stat-label">Movies Reviewed</div>
-    </div>
-  </div>
-
-  <!-- Reviews Grid -->
-  <div class="reviews-grid" th:if="${reviews != null and !reviews.empty}">
-    <div class="review-card" th:each="review : ${reviews}">
-
-      <div class="review-header">
-        <div class="movie-info">
-          <div class="movie-name">
-            <a th:href="@{'/movie/' + ${review.movieId}}" class="movie-link"
-               th:text="${movieTitles != null and movieTitles[review.movieId] != null ? movieTitles[review.movieId] : review.movieId}">
-              Movie Title
+          <!-- Show when user is not authenticated -->
+          <div th:unless="${currentUser}" class="auth-guest">
+            <a href="/login" class="login-btn">
+              <i class="fas fa-sign-in-alt"></i>
+              Login
+            </a>
+            <a href="/register" class="register-link">
+              <i class="fas fa-user-plus"></i>
+              Register
             </a>
           </div>
         </div>
+      </div>
+    </header>
 
-        <div class="rating-section">
-          <div class="stars-display">
-            <span th:each="i : ${#numbers.sequence(1, review.rating)}">⭐</span>
-            <span th:each="i : ${#numbers.sequence(review.rating + 1, 5)}" style="opacity: 0.3;">☆</span>
-          </div>
-          <div class="rating-badge" th:text="${review.rating} + '/5'">5/5</div>
+    <div class="container">
+      <div class="page-header">
+        <h1 class="page-title">⭐ Movie Reviews</h1>
+        <p class="page-subtitle">
+          Discover what movie enthusiasts are saying about their favorite films
+        </p>
+      </div>
+
+      <div class="page-actions">
+        <!-- Only show Write Review button for authenticated users -->
+        <a
+          th:if="${currentUser}"
+          th:href="@{/reviews/create}"
+          class="btn btn-primary"
+        >
+          <i class="fas fa-plus"></i>
+          Write Review
+        </a>
+        <a href="/movie/all" class="btn btn-secondary">
+          <i class="fas fa-film"></i>
+          Browse Movies
+        </a>
+      </div>
+
+      <!-- Success/Info Messages -->
+      <div class="alert alert-success" th:if="${successMessage}">
+        <i class="fas fa-check-circle"></i>
+        <span th:text="${successMessage}">Success message</span>
+      </div>
+
+      <div class="alert alert-info" th:if="${message}">
+        <i class="fas fa-info-circle"></i>
+        <span th:text="${message}">Info message</span>
+      </div>
+
+      <!-- Reviews Stats -->
+      <div class="reviews-stats" th:if="${reviews != null and !reviews.empty}">
+        <div class="stat-card">
+          <div class="stat-number" th:text="${#lists.size(reviews)}">0</div>
+          <div class="stat-label">Total Reviews</div>
+        </div>
+        <div class="stat-card" th:if="${movieTitles != null}">
+          <div class="stat-number" th:text="${#maps.size(movieTitles)}">0</div>
+          <div class="stat-label">Movies Reviewed</div>
         </div>
       </div>
 
-      <div class="reviewer-info">
-        <div class="reviewer-avatar">
-          <i class="fas fa-user"></i>
-        </div>
-        <div class="reviewer-details">
-          <div class="reviewer-name" th:text="${review.userId != null and !#strings.isEmpty(review.userId) ? review.userId : 'Anonymous User'}">
-            Reviewer Name
+      <!-- Reviews Grid -->
+      <div class="reviews-grid" th:if="${reviews != null and !reviews.empty}">
+        <div class="review-card" th:each="review : ${reviews}">
+          <div class="review-header">
+            <div class="movie-info">
+              <div class="movie-name">
+                <a
+                  th:href="@{'/movie/' + ${review.movieId}}"
+                  class="movie-link"
+                  th:text="${movieTitles != null and movieTitles[review.movieId] != null ? movieTitles[review.movieId] : review.movieId}"
+                >
+                  Movie Title
+                </a>
+              </div>
+            </div>
+
+            <div class="rating-section">
+              <div class="stars-display">
+                  <span
+                          th:each="i : ${#numbers.sequence(1, 5)}"
+                          th:text="${i <= review.rating ? '⭐' : '☆'}"
+                  ></span>
+                <span
+                  th:each="i : ${#numbers.sequence(review.rating + 1, 5)}"
+                  style="opacity: 0.3"
+                  >☆</span
+                >
+              </div>
+              <div class="rating-badge" th:text="${review.rating} + '/5'">
+                5/5
+              </div>
+            </div>
           </div>
-          <div class="review-date" th:if="${review.createdAt}">
-            <i class="fas fa-calendar"></i>
-            <span th:text="${#temporals.format(review.createdAt, 'MMM dd, yyyy')}">Review Date</span>
+
+          <div class="reviewer-info">
+            <div class="reviewer-avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="reviewer-details">
+              <div
+                class="reviewer-name"
+                th:text="${review.userId != null and !#strings.isEmpty(review.userId) ? review.userId : 'Anonymous User'}"
+              >
+                Reviewer Name
+              </div>
+              <div class="review-date" th:if="${review.createdAt}">
+                <i class="fas fa-calendar"></i>
+                <span
+                  th:text="${#temporals.format(review.createdAt, 'MMM dd, yyyy')}"
+                  >Review Date</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="review-comment" th:text="${review.comment}">
+            This is the review comment that provides detailed thoughts about the
+            movie, including what the reviewer liked or disliked about various
+            aspects of the film.
+          </div>
+
+          <div class="review-actions">
+            <a
+              th:href="@{'/reviews/' + ${review.reviewId}}"
+              class="btn btn-view btn-sm"
+            >
+              <i class="fas fa-eye"></i>
+              View
+            </a>
+
+            <!-- Only show edit/delete for authenticated users who own the review or admins -->
+            <a
+              th:if="${currentUser != null and currentUser == review.userId}"
+              th:href="@{'/reviews/edit/' + ${review.reviewId}}"
+              class="btn btn-warning btn-sm"
+            >
+              <i class="fas fa-edit"></i>
+              Edit
+            </a>
+
+            <!-- Admin can edit any review -->
+            <a
+              sec:authorize="hasRole('ADMIN')"
+              th:if="${currentUser != null and currentUser != review.userId}"
+              th:href="@{'/reviews/edit/' + ${review.reviewId}}"
+              class="btn btn-warning btn-sm"
+            >
+              <i class="fas fa-edit"></i>
+              Edit (Admin)
+            </a>
+
+            <a
+              th:if="${currentUser != null and currentUser == review.userId}"
+              th:href="@{'/reviews/delete/' + ${review.reviewId}}"
+              class="btn btn-danger btn-sm"
+              onclick="
+                return confirm('Are you sure you want to delete this review?');
+              "
+            >
+              <i class="fas fa-trash"></i>
+              Delete
+            </a>
+
+            <!-- Admin can delete any review -->
+            <a
+              sec:authorize="hasRole('ADMIN')"
+              th:if="${currentUser != null and currentUser != review.userId}"
+              th:href="@{'/reviews/delete/' + ${review.reviewId}}"
+              class="btn btn-danger btn-sm"
+              onclick="
+                return confirm('Are you sure you want to delete this review?');
+              "
+            >
+              <i class="fas fa-trash"></i>
+              Delete (Admin)
+            </a>
           </div>
         </div>
       </div>
 
-      <div class="review-comment" th:text="${review.comment}">
-        This is the review comment that provides detailed thoughts about the movie, including what the reviewer liked or disliked about various aspects of the film.
+      <!-- Empty State -->
+      <div class="empty-state" th:if="${reviews == null or reviews.empty}">
+        <div class="empty-icon">💭</div>
+        <h2 class="empty-title">No Reviews Yet</h2>
+        <p class="empty-message" th:if="${currentUser}">
+          Be the first to share your thoughts about movies! Your reviews help
+          other movie lovers discover great films.
+        </p>
+        <p class="empty-message" th:unless="${currentUser}">
+          Reviews from movie enthusiasts will appear here.
+          <a href="/login">Login</a> to write your own reviews!
+        </p>
+        <a
+          th:if="${currentUser}"
+          th:href="@{/reviews/create}"
+          class="btn btn-primary"
+        >
+          <i class="fas fa-star"></i>
+          Write First Review
+        </a>
+        <a th:unless="${currentUser}" href="/login" class="btn btn-primary">
+          <i class="fas fa-sign-in-alt"></i>
+          Login to Write Reviews
+        </a>
       </div>
 
-      <div class="review-actions">
-        <a th:href="@{'/reviews/' + ${review.reviewId}}" class="btn btn-view btn-sm">
-          <i class="fas fa-eye"></i>
-          View
-        </a>
-
-        <!-- Only show edit/delete for authenticated users who own the review or admins -->
-        <a th:if="${currentUser != null and currentUser == review.userId}"
-           th:href="@{'/reviews/edit/' + ${review.reviewId}}" class="btn btn-warning btn-sm">
-          <i class="fas fa-edit"></i>
-          Edit
-        </a>
-
-        <!-- Admin can edit any review -->
-        <a sec:authorize="hasRole('ADMIN')"
-           th:if="${currentUser != null and currentUser != review.userId}"
-           th:href="@{'/reviews/edit/' + ${review.reviewId}}" class="btn btn-warning btn-sm">
-          <i class="fas fa-edit"></i>
-          Edit (Admin)
-        </a>
-
-        <a th:if="${currentUser != null and currentUser == review.userId}"
-           th:href="@{'/reviews/delete/' + ${review.reviewId}}"
-           class="btn btn-danger btn-sm"
-           onclick="return confirm('Are you sure you want to delete this review?')">
-          <i class="fas fa-trash"></i>
-          Delete
-        </a>
-
-        <!-- Admin can delete any review -->
-        <a sec:authorize="hasRole('ADMIN')"
-           th:if="${currentUser != null and currentUser != review.userId}"
-           th:href="@{'/reviews/delete/' + ${review.reviewId}}"
-           class="btn btn-danger btn-sm"
-           onclick="return confirm('Are you sure you want to delete this review?')">
-          <i class="fas fa-trash"></i>
-          Delete (Admin)
-        </a>
+      <!-- Load More (for future pagination) -->
+      <div
+        class="load-more"
+        th:if="${reviews != null and !reviews.empty and #lists.size(reviews) >= 10}"
+      >
+        <button
+          class="btn btn-secondary"
+          style="opacity: 0.6; cursor: not-allowed"
+          disabled
+        >
+          <i class="fas fa-plus"></i>
+          Load More Reviews
+        </button>
+        <p style="margin-top: 1rem; opacity: 0.6; font-size: 0.9rem">
+          Pagination coming soon!
+        </p>
       </div>
     </div>
-  </div>
-
-  <!-- Empty State -->
-  <div class="empty-state" th:if="${reviews == null or reviews.empty}">
-    <div class="empty-icon">💭</div>
-    <h2 class="empty-title">No Reviews Yet</h2>
-    <p class="empty-message" th:if="${currentUser}">
-      Be the first to share your thoughts about movies! Your reviews help other movie lovers discover great films.
-    </p>
-    <p class="empty-message" th:unless="${currentUser}">
-      Reviews from movie enthusiasts will appear here. <a href="/login">Login</a> to write your own reviews!
-    </p>
-    <a th:if="${currentUser}" th:href="@{/reviews/create}" class="btn btn-primary">
-      <i class="fas fa-star"></i>
-      Write First Review
-    </a>
-    <a th:unless="${currentUser}" href="/login" class="btn btn-primary">
-      <i class="fas fa-sign-in-alt"></i>
-      Login to Write Reviews
-    </a>
-  </div>
-
-  <!-- Load More (for future pagination) -->
-  <div class="load-more" th:if="${reviews != null and !reviews.empty and #lists.size(reviews) >= 10}">
-    <button class="btn btn-secondary" style="opacity: 0.6; cursor: not-allowed;" disabled>
-      <i class="fas fa-plus"></i>
-      Load More Reviews
-    </button>
-    <p style="margin-top: 1rem; opacity: 0.6; font-size: 0.9rem;">
-      Pagination coming soon!
-    </p>
-  </div>
-</div>
-</body>
+  </body>
 </html>

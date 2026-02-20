@@ -8,16 +8,7 @@ import reactor.core.publisher.Mono;
 public interface UserService {
 
     Mono<UserResponseDto> registerUser(UserRegistrationDto userRegistrationDto);
-
     Mono<User> findByUsername(String username);
-
-    Mono<User> promoteToAuthor(String userId);
-
     Mono<Boolean> isUsernameExists(String username);
-
     Mono<Boolean> isEmailExists(String email);
-
-    Mono<UserResponseDto> getUserById(String userId);
-
-    Mono<UserResponseDto> updateUserRole(String userId, String newRole);
 }

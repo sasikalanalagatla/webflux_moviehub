@@ -12,8 +12,7 @@ public interface MovieService {
     Flux<MovieResponseDto> getALlMovies();
     Mono<MovieResponseDto> updateMovie(String movieId, MovieRequestDto movieRequestDto);
     Mono<Void> deleteMovie(String id);
-    Mono<MovieResponseDto> updateMovieRating(String movieId, Double newRating); // New method
-    Flux<MovieResponseDto> findMoviesByGenre(String genre); // New method
+    Mono<MovieResponseDto> updateMovieRating(String movieId, Double newRating);
+    Flux<MovieResponseDto> findMoviesByGenre(String genre);
     Mono<MovieResponseDto> createMovieFromTmdbSearch(String query, Integer year);
-    Mono<MovieResponseDto> enrichMovieWithTmdbData(String movieId);  // ✅ Now matches implementation
 }

@@ -11,6 +11,6 @@ public interface ReviewService {
     Mono<Void> deleteReview(String reviewId);
     Mono<ReviewResponseDto> getReviewById(String reviewId);
     Flux<ReviewResponseDto> getAllReviews();
-    Flux<ReviewResponseDto> getReviewsByMovieId(String movieId); // New method
-    Mono<Double> calculateAverageRatingForMovie(String movieId); // New method
+    Flux<ReviewResponseDto> getReviewsByMovieId(String movieId);
+    Mono<Double> calculateAverageRatingForMovie(String movieId);
 }

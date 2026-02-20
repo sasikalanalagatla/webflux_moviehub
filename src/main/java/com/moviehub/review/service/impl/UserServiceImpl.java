@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
         logger.info("🚀 Starting registration for user: {}", userRegistrationDto.getUsername());
 
         return validateUserRegistration(userRegistrationDto)
-                .then(userRepository.count()) // Use count() instead of countUsers()
+                .then(userRepository.count())
                 .doOnNext(count -> logger.info("📊 Current user count: {}", count))
                 .flatMap(userCount -> {
                     String role = (userCount == 0) ? "ROLE_ADMIN" : "ROLE_USER";
@@ -68,20 +68,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsername(username);
     }
 
-    @Override
-    public Mono<User> promoteToAuthor(String userId) {
-        logger.info("🔄 Promoting user to AUTHOR: {}", userId);
 
-        return userRepository.findById(userId)
-                .flatMap(user -> {
-                    if ("ROLE_USER".equals(user.getRole())) {
-                        user.setRole("ROLE_AUTHOR");
-                        return userRepository.save(user)
-                                .doOnNext(savedUser -> logger.info("✅ User promoted to AUTHOR: {}", savedUser.getUsername()));
-                    }
-                    return Mono.just(user);
-                });
-    }
 
     @Override
     public Mono<Boolean> isUsernameExists(String username) {
@@ -91,22 +78,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<Boolean> isEmailExists(String email) {
         return userRepository.existsByEmail(email);
-    }
-
-    @Override
-    public Mono<UserResponseDto> getUserById(String userId) {
-        return userRepository.findById(userId)
-                .map(UserMapper::userToDto);
-    }
-
-    @Override
-    public Mono<UserResponseDto> updateUserRole(String userId, String newRole) {
-        return userRepository.findById(userId)
-                .flatMap(user -> {
-                    user.setRole(newRole);
-                    return userRepository.save(user);
-                })
-                .map(UserMapper::userToDto);
     }
 
     private Mono<Void> validateUserRegistration(UserRegistrationDto userDto) {
