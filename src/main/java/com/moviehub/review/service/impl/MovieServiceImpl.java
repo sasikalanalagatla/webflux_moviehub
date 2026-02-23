@@ -193,6 +193,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Scheduled(cron = "0 0 0 * * *") //daily sync up at mid night 12
+    //@Scheduled(cron = "0 * * * * *")
     public void syncTeluguMoviesDaily() {
         if (tmdbApiKey == null || tmdbApiKey.isBlank()) {
             logger.warn("TMDb API key not configured, skipping Telugu movie sync");
@@ -232,22 +233,6 @@ public class MovieServiceImpl implements MovieService {
                         error -> logger.error("Telugu movie sync error: {}", error.getMessage(), error),
                         () -> logger.info("Complete Telugu movie sync finished! (1990-{})", endYear)
                 );
-    }
-
-    @Override
-    public Mono<MovieResponseDto> enrichMovieWithTmdbData(String movieId) {
-        logger.info("Enriching movie {} with TMDb data", movieId);
-
-        return movieRepository.findById(movieId)
-                .switchIfEmpty(Mono.error(new MovieNotFoundException("Movie not found with movieId: " + movieId)))
-                .doOnNext(movie -> logger.debug("Found movie to enrich: {}", movie.getTitle()))
-                .flatMap(movie -> {
-                    logger.info("Movie enrichment completed for: {}", movie.getTitle());
-                    return Mono.just(movie);
-                })
-                .map(this::ensureCrewInfoExists)
-                .map(MovieMapper::toDto)
-                .doOnError(error -> logger.error("Error enriching movie {}: {}", movieId, error.getMessage(), error));
     }
 
     private Movie ensureCrewInfoExists(Movie movie) {

@@ -567,9 +567,10 @@
     <!-- **Movies Grid - Fixed Layout with All Content Visible** -->
     <div class="movies-grid" th:if="${pagedMovies != null and !pagedMovies.empty}">
         <div class="movie-card" th:each="movie : ${pagedMovies}">
-            <div class="movie-status" th:class="${movie.released ? 'status-released' : 'status-upcoming'}"
-                 th:text="${movie.released ? 'Released' : 'Upcoming'}">Released</div>
-
+            <div class="movie-status"
+                 th:class="${movie.released == true ? 'status-released' : 'status-upcoming'}"
+                 th:text="${movie.released == true ? 'Released' : 'Upcoming'}">
+            </div>
             <div class="movie-poster">
                 <img th:if="${movie.posterUrl}" th:src="${movie.posterUrl}" th:alt="${movie.title}"
                      style="width: 100%; height: 100%; object-fit: cover;">
