@@ -592,7 +592,7 @@
           <li><a href="/movie/">Home</a></li>
           <li><a href="/movie/all">Movies</a></li>
           <li><a href="/reviews" class="active">Reviews</a></li>
-          <li><a href="/movie/add">Add Movie</a></li>
+          <li th:if="${isAdmin}"><a href="/movie/add">Add Movie</a></li>
         </ul>
 
         <!-- Authentication Section -->
@@ -696,15 +696,10 @@
 
             <div class="rating-section">
               <div class="stars-display">
-                  <span
-                          th:each="i : ${#numbers.sequence(1, 5)}"
-                          th:text="${i <= review.rating ? '⭐' : '☆'}"
-                  ></span>
                 <span
-                  th:each="i : ${#numbers.sequence(review.rating + 1, 5)}"
-                  style="opacity: 0.3"
-                  >☆</span
-                >
+                  th:each="i : ${#numbers.sequence(1, 5)}"
+                  th:text="${i <= review.rating ? '⭐' : '☆'}"
+                ></span>
               </div>
               <div class="rating-badge" th:text="${review.rating} + '/5'">
                 5/5

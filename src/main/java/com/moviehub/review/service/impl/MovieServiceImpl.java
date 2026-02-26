@@ -192,8 +192,8 @@ public class MovieServiceImpl implements MovieService {
         return createMovie(dto);
     }
 
-    @Scheduled(cron = "0 0 0 * * *") //daily sync up at mid night 12
-    //@Scheduled(cron = "0 * * * * *")
+    //@Scheduled(cron = "0 0 0 * * *") //daily sync up at mid night 12
+    @Scheduled(cron = "0 * * * * *") // sync up per each minute to load the data from
     public void syncTeluguMoviesDaily() {
         if (tmdbApiKey == null || tmdbApiKey.isBlank()) {
             logger.warn("TMDb API key not configured, skipping Telugu movie sync");

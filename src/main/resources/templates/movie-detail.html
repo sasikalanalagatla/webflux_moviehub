@@ -568,7 +568,9 @@
           <li><a href="/movie/">Home</a></li>
           <li><a href="/movie/all">Movies</a></li>
           <li><a href="/reviews">Reviews</a></li>
-          <li><a href="/movie/add">Add Movie</a></li>
+          <li th:if="${isAdmin}">
+            <a href="/movie/add">Add Movie</a>
+          </li>
         </ul>
 
         <!-- Authentication Section -->
@@ -689,6 +691,7 @@
             <!-- Movie Actions with Edit and Delete buttons -->
             <div class="movie-actions">
               <a
+                sec:authorize="isAuthenticated()"
                 th:href="@{'/reviews/create?movieId=' + ${movie.movieId}}"
                 class="btn btn-primary"
               >
@@ -697,7 +700,7 @@
 
               <!-- Edit Button - Admin only -->
               <a
-                sec:authorize="hasRole('ADMIN')"
+                th:if="${isAdmin}"
                 th:href="@{'/movie/edit/' + ${movie.movieId}}"
                 class="btn btn-secondary"
               >
@@ -706,7 +709,7 @@
 
               <!-- Delete Button - Admin only -->
               <form
-                sec:authorize="hasRole('ADMIN')"
+                th:if="${isAdmin}"
                 th:action="@{'/movie/delete/' + ${movie.movieId}}"
                 method="post"
                 style="display: inline"
@@ -722,6 +725,7 @@
               </form>
 
               <form
+                th:if="${isAdmin}"
                 th:action="@{'/movie/' + ${movie.movieId} + '/enrich'}"
                 method="post"
                 style="display: inline"

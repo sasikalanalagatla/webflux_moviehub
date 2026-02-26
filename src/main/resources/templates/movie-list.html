@@ -1,642 +1,716 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!doctype html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+  lang="en"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MovieHub - All Movies</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f0f23;
-            color: white;
-            line-height: 1.6;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: #0f0f23;
+        color: white;
+        line-height: 1.6;
+      }
 
-        .header {
-            background: linear-gradient(135deg, rgba(30, 60, 114, 0.9), rgba(42, 82, 152, 0.9));
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+      .header {
+        background: linear-gradient(
+          135deg,
+          rgba(30, 60, 114, 0.9),
+          rgba(42, 82, 152, 0.9)
+        );
+        backdrop-filter: blur(10px);
+        padding: 1rem 0;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+      }
+      .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .logo {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ff6b6b;
+        text-decoration: none;
+      }
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+      }
+      .nav-links a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+      }
+      .nav-links a:hover,
+      .nav-links a.active {
+        background: rgba(255, 107, 107, 0.2);
+        color: #ff6b6b;
+      }
+
+      /* Authentication Section */
+      .nav-auth {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      /* Authenticated User Styles */
+      .auth-user {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .user-greeting {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: white;
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+      .user-greeting i {
+        color: #4ecdc4;
+        font-size: 1.1rem;
+      }
+      .user-name {
+        color: #4ecdc4;
+        font-weight: 600;
+      }
+
+      /* Logout Button */
+      .logout-form {
+        display: inline;
+        margin: 0;
+      }
+      .logout-btn {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .logout-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+      }
+
+      /* Guest Login Styles */
+      .auth-guest {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .login-btn {
+        background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        color: white;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+      }
+      .register-link {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        font-size: 0.9rem;
+      }
+      .register-link:hover {
+        color: #4ecdc4;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+      .page-title {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+      }
+
+      /* Filters */
+      .filters {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 3rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        align-items: end;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+      .form-group label {
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+      .form-control {
+        padding: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-size: 1rem;
+      }
+      .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+      }
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      }
+
+      /* **FIXED: Movie Grid with proper sizing** */
+      .movies-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
+        margin-bottom: 3rem;
+      }
+
+      .movie-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        height: 320px; /* **INCREASED from 280px to 320px** */
+        display: flex;
+        flex-direction: column;
+      }
+
+      .movie-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .movie-poster {
+        width: 100%;
+        height: 160px; /* **Reduced poster size to make room for content** */
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+      }
+
+      .movie-info {
+        padding: 0.6rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .movie-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+        color: white;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        height: 2.4em; /* **Fixed height for title** */
+      }
+
+      .movie-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.4rem;
+        font-size: 0.72rem;
+        opacity: 0.8;
+      }
+
+      .movie-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.2rem;
+        color: #ffd700;
+      }
+
+      .movie-genre {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.2rem;
+        margin-bottom: 0.4rem;
+        min-height: 1.2rem; /* **Reserve space even if no genres** */
+      }
+
+      .genre-tag {
+        padding: 0.1rem 0.4rem;
+        background: rgba(102, 126, 234, 0.2);
+        color: #667eea;
+        border-radius: 6px;
+        font-size: 0.6rem;
+        font-weight: 500;
+      }
+
+      .movie-status {
+        position: absolute;
+        top: 0.4rem;
+        right: 0.4rem;
+        padding: 0.15rem 0.4rem;
+        border-radius: 6px;
+        font-size: 0.6rem;
+        font-weight: 500;
+        z-index: 2;
+      }
+
+      .status-released {
+        background: rgba(34, 197, 94, 0.9);
+        color: white;
+      }
+
+      .status-upcoming {
+        background: rgba(251, 191, 36, 0.9);
+        color: #92400e;
+      }
+
+      /* **FIXED: Movie actions - ensure buttons are visible** */
+      .movie-actions {
+        display: flex;
+        gap: 0.25rem;
+        margin-top: auto; /* **Push buttons to bottom** */
+      }
+
+      .btn-sm {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.65rem;
+        border-radius: 5px;
+        flex: 1;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Pagination Styles */
+      .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3rem;
+        padding: 1rem 0;
+      }
+
+      .pagination-btn {
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        text-decoration: none;
+        color: white;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 140px;
+        justify-content: center;
+      }
+
+      .pagination-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+      }
+
+      .page-info {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+      }
+
+      .page-info strong {
+        color: #667eea;
+        font-weight: 700;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+      }
+      .empty-state i {
+        font-size: 4rem;
+        color: #667eea;
+        margin-bottom: 1rem;
+      }
+      .empty-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .empty-state p {
+        opacity: 0.8;
+        margin-bottom: 2rem;
+      }
+
+      /* **RESPONSIVE: Adjust grid for smaller screens** */
+      @media (max-width: 1400px) {
+        .movies-grid {
+          grid-template-columns: repeat(4, 1fr);
         }
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+      }
+
+      @media (max-width: 1200px) {
+        .movies-grid {
+          grid-template-columns: repeat(3, 1fr);
         }
-        .logo {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #ff6b6b;
-            text-decoration: none;
+        .container {
+          max-width: 1000px;
         }
+      }
+
+      @media (max-width: 768px) {
         .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
+          display: none;
         }
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-        }
-        .nav-links a:hover, .nav-links a.active {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-        }
-
-        /* Authentication Section */
         .nav-auth {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: flex-end;
         }
-
-        /* Authenticated User Styles */
         .auth-user {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: flex-end;
         }
         .user-greeting {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: white;
-            font-weight: 500;
-            font-size: 0.95rem;
+          font-size: 0.85rem;
         }
-        .user-greeting i {
-            color: #4ecdc4;
-            font-size: 1.1rem;
-        }
-        .user-name {
-            color: #4ecdc4;
-            font-weight: 600;
-        }
-
-        /* Logout Button */
-        .logout-form {
-            display: inline;
-            margin: 0;
-        }
-        .logout-btn {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .logout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
-        }
-
-        /* Guest Login Styles */
-        .auth-guest {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+        .logout-btn,
         .login-btn {
-            background: linear-gradient(135deg, #4ecdc4, #44a08d);
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 25px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+          padding: 0.4rem 0.8rem;
+          font-size: 0.8rem;
         }
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
-        }
-        .register-link {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-            font-size: 0.9rem;
-        }
-        .register-link:hover {
-            color: #4ecdc4;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .page-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        .page-title {
-            font-size: 3rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-        }
-
-        /* Filters */
-        .filters {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 2rem;
-            border-radius: 20px;
-            margin-bottom: 3rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .auth-guest {
+          flex-direction: column;
+          gap: 0.5rem;
+          align-items: flex-end;
         }
         .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            align-items: end;
+          grid-template-columns: 1fr;
         }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .form-group label {
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        .form-control {
-            padding: 0.75rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 1rem;
-        }
-        .form-control:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-        }
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        /* **FIXED: Movie Grid with proper sizing** */
         .movies-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 1rem;
-            margin-bottom: 3rem;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
         }
-
-        .movie-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            height: 320px; /* **INCREASED from 280px to 320px** */
-            display: flex;
-            flex-direction: column;
-        }
-
-        .movie-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .movie-poster {
-            width: 100%;
-            height: 160px; /* **Reduced poster size to make room for content** */
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: white;
-        }
-
-        .movie-info {
-            padding: 0.6rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .movie-title {
-            font-size: 0.85rem;
-            font-weight: 700;
-            margin-bottom: 0.3rem;
-            color: white;
-            line-height: 1.2;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            height: 2.4em; /* **Fixed height for title** */
-        }
-
-        .movie-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.4rem;
-            font-size: 0.72rem;
-            opacity: 0.8;
-        }
-
-        .movie-rating {
-            display: flex;
-            align-items: center;
-            gap: 0.2rem;
-            color: #ffd700;
-        }
-
-        .movie-genre {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.2rem;
-            margin-bottom: 0.4rem;
-            min-height: 1.2rem; /* **Reserve space even if no genres** */
-        }
-
-        .genre-tag {
-            padding: 0.1rem 0.4rem;
-            background: rgba(102, 126, 234, 0.2);
-            color: #667eea;
-            border-radius: 6px;
-            font-size: 0.6rem;
-            font-weight: 500;
-        }
-
-        .movie-status {
-            position: absolute;
-            top: 0.4rem;
-            right: 0.4rem;
-            padding: 0.15rem 0.4rem;
-            border-radius: 6px;
-            font-size: 0.6rem;
-            font-weight: 500;
-            z-index: 2;
-        }
-
-        .status-released {
-            background: rgba(34, 197, 94, 0.9);
-            color: white;
-        }
-
-        .status-upcoming {
-            background: rgba(251, 191, 36, 0.9);
-            color: #92400e;
-        }
-
-        /* **FIXED: Movie actions - ensure buttons are visible** */
         .movie-actions {
-            display: flex;
-            gap: 0.25rem;
-            margin-top: auto; /* **Push buttons to bottom** */
+          flex-direction: row;
         }
-
-        .btn-sm {
-            padding: 0.35rem 0.5rem;
-            font-size: 0.65rem;
-            border-radius: 5px;
-            flex: 1;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Pagination Styles */
         .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 3rem;
-            padding: 1rem 0;
+          flex-direction: column;
+          gap: 1rem;
         }
-
         .pagination-btn {
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            text-decoration: none;
-            color: white;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: 2px solid rgba(102, 126, 234, 0.3);
-            transition: all 0.3s ease;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            min-width: 140px;
-            justify-content: center;
+          width: 100%;
+          max-width: 200px;
         }
 
-        .pagination-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
-            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+        /* Mobile Authentication Menu */
+        .nav-container {
+          flex-direction: column;
+          gap: 1rem;
+          align-items: center;
         }
+      }
 
-        .page-info {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1rem;
+      @media (max-width: 480px) {
+        .movies-grid {
+          grid-template-columns: 1fr;
         }
-
-        .page-info strong {
-            color: #667eea;
-            font-weight: 700;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-        }
-        .empty-state i {
-            font-size: 4rem;
-            color: #667eea;
-            margin-bottom: 1rem;
-        }
-        .empty-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .empty-state p {
-            opacity: 0.8;
-            margin-bottom: 2rem;
-        }
-
-        /* **RESPONSIVE: Adjust grid for smaller screens** */
-        @media (max-width: 1400px) {
-            .movies-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        @media (max-width: 1200px) {
-            .movies-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            .container {
-                max-width: 1000px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .nav-auth {
-                flex-direction: column;
-                gap: 0.5rem;
-                align-items: flex-end;
-            }
-            .auth-user {
-                flex-direction: column;
-                gap: 0.5rem;
-                align-items: flex-end;
-            }
-            .user-greeting {
-                font-size: 0.85rem;
-            }
-            .logout-btn, .login-btn {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.8rem;
-            }
-            .auth-guest {
-                flex-direction: column;
-                gap: 0.5rem;
-                align-items: flex-end;
-            }
-            .filter-grid { grid-template-columns: 1fr; }
-            .movies-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
-            }
-            .movie-actions { flex-direction: row; }
-            .pagination {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            .pagination-btn {
-                width: 100%;
-                max-width: 200px;
-            }
-
-            /* Mobile Authentication Menu */
-            .nav-container {
-                flex-direction: column;
-                gap: 1rem;
-                align-items: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .movies-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+      }
     </style>
-</head>
-<body>
-<header class="header">
-    <div class="nav-container">
+  </head>
+  <body>
+    <header class="header">
+      <div class="nav-container">
         <a href="/movie/" class="logo">🎬 MovieHub</a>
         <ul class="nav-links">
-            <li><a href="/movie/">Home</a></li>
-            <li><a href="/movie/all" class="active">Movies</a></li>
-            <li><a href="/reviews">Reviews</a></li>
-            <li><a href="/movie/add">Add Movie</a></li>
+          <li><a href="/movie/">Home</a></li>
+          <li><a href="/movie/all" class="active">Movies</a></li>
+          <li><a href="/reviews">Reviews</a></li>
+          <li th:if="${isAdmin}">
+            <a href="/movie/add">Add Movie</a>
+          </li>
         </ul>
 
         <!-- Authentication Section -->
         <div class="nav-auth">
-            <!-- Show when user is authenticated -->
-            <div th:if="${currentUser}" class="auth-user">
-                <div class="user-greeting">
-                    <i class="fas fa-user-circle"></i>
-                    <span>Hello, <span class="user-name" th:text="${currentUser}">Username</span></span>
-                </div>
-                <form th:action="@{/logout}" method="post" class="logout-form">
-                    <button type="submit" class="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Logout
-                    </button>
-                </form>
+          <!-- Show when user is authenticated -->
+          <div th:if="${currentUser}" class="auth-user">
+            <div class="user-greeting">
+              <i class="fas fa-user-circle"></i>
+              <span
+                >Hello,
+                <span class="user-name" th:text="${currentUser}"
+                  >Username</span
+                ></span
+              >
             </div>
+            <form th:action="@{/logout}" method="post" class="logout-form">
+              <button type="submit" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+              </button>
+            </form>
+          </div>
 
-            <!-- Show when user is not authenticated -->
-            <div th:unless="${currentUser}" class="auth-guest">
-                <a href="/login" class="login-btn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Login
-                </a>
-                <a href="/register" class="register-link">
-                    <i class="fas fa-user-plus"></i>
-                    Register
-                </a>
-            </div>
+          <!-- Show when user is not authenticated -->
+          <div th:unless="${currentUser}" class="auth-guest">
+            <a href="/login" class="login-btn">
+              <i class="fas fa-sign-in-alt"></i>
+              Login
+            </a>
+            <a href="/register" class="register-link">
+              <i class="fas fa-user-plus"></i>
+              Register
+            </a>
+          </div>
         </div>
-    </div>
-</header>
+      </div>
+    </header>
 
-<div class="container">
-    <div class="page-header">
+    <div class="container">
+      <div class="page-header">
         <h1 class="page-title">🎬 All Movies</h1>
-    </div>
+      </div>
 
-    <!-- Filters -->
-    <form class="filters" method="get">
+      <!-- Filters -->
+      <form class="filters" method="get">
         <div class="filter-grid">
-            <div class="form-group">
-                <label for="search">Search Movies</label>
-                <input type="text" id="search" name="search" class="form-control"
-                       th:value="${searchQuery}" placeholder="Search by title...">
-            </div>
-            <div class="form-group">
-                <label for="genre">Genre</label>
-                <select id="genre" name="genre" class="form-control">
-                    <option value="">All Genres</option>
-                    <option value="action" th:selected="${genreFilter == 'action'}">Action</option>
-                    <option value="drama" th:selected="${genreFilter == 'drama'}">Drama</option>
-                    <option value="comedy" th:selected="${genreFilter == 'comedy'}">Comedy</option>
-                    <option value="thriller" th:selected="${genreFilter == 'thriller'}">Thriller</option>
-                    <option value="telugu" th:selected="${genreFilter == 'telugu'}">Telugu</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="year">Release Year</label>
-                <input type="number" id="year" name="year" class="form-control"
-                       th:value="${yearFilter}" placeholder="2024" min="1900" max="2030">
-            </div>
-            <div class="form-group">
-                <!-- **HIDDEN: Force page size to 25** -->
-                <input type="hidden" name="size" value="25">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Search
-                </button>
-            </div>
+          <div class="form-group">
+            <label for="search">Search Movies</label>
+            <input
+              type="text"
+              id="search"
+              name="search"
+              class="form-control"
+              th:value="${searchQuery}"
+              placeholder="Search by title..."
+            />
+          </div>
+          <div class="form-group">
+            <label for="year">Release Year</label>
+            <input
+              type="number"
+              id="year"
+              name="year"
+              class="form-control"
+              th:value="${yearFilter}"
+              placeholder="2024"
+              min="1900"
+              max="2030"
+            />
+          </div>
+          <div class="form-group">
+            <!-- **HIDDEN: Force page size to 25** -->
+            <input type="hidden" name="size" value="25" />
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search"></i> Search
+            </button>
+          </div>
         </div>
-    </form>
+      </form>
 
-    <!-- **Movies Grid - Fixed Layout with All Content Visible** -->
-    <div class="movies-grid" th:if="${pagedMovies != null and !pagedMovies.empty}">
+      <!-- **Movies Grid - Fixed Layout with All Content Visible** -->
+      <div
+        class="movies-grid"
+        th:if="${pagedMovies != null and !pagedMovies.empty}"
+      >
         <div class="movie-card" th:each="movie : ${pagedMovies}">
-            <div class="movie-status"
-                 th:class="${movie.released == true ? 'status-released' : 'status-upcoming'}"
-                 th:text="${movie.released == true ? 'Released' : 'Upcoming'}">
-            </div>
-            <div class="movie-poster">
-                <img th:if="${movie.posterUrl}" th:src="${movie.posterUrl}" th:alt="${movie.title}"
-                     style="width: 100%; height: 100%; object-fit: cover;">
-                <span th:unless="${movie.posterUrl}">🎬</span>
-            </div>
+          <div
+            class="movie-status"
+            th:class="${movie.released == true ? 'status-released' : 'status-upcoming'}"
+            th:text="${movie.released == true ? 'Released' : 'Upcoming'}"
+          ></div>
+          <div class="movie-poster">
+            <img
+              th:if="${movie.posterUrl}"
+              th:src="${movie.posterUrl}"
+              th:alt="${movie.title}"
+              style="width: 100%; height: 100%; object-fit: cover"
+            />
+            <span th:unless="${movie.posterUrl}">🎬</span>
+          </div>
 
-            <div class="movie-info">
-                <div class="movie-content">
-                    <h3 class="movie-title" th:text="${movie.title}">Movie Title</h3>
+          <div class="movie-info">
+            <div class="movie-content">
+              <h3 class="movie-title" th:text="${movie.title}">Movie Title</h3>
 
-                    <div class="movie-meta">
-                        <span th:text="${movie.releaseYear}">2024</span>
-                        <div class="movie-rating">
-                            <i class="fas fa-star"></i>
-                            <span th:text="${movie.averageRating != null ? movie.averageRating : '0.0'}">4.5</span>
-                        </div>
-                    </div>
-
-                    <div class="movie-genre" th:if="${movie.genre != null}">
-                        <span class="genre-tag" th:each="genre : ${movie.genre}" th:text="${genre}">Action</span>
-                    </div>
+              <div class="movie-meta">
+                <span th:text="${movie.releaseYear}">2024</span>
+                <div class="movie-rating">
+                  <i class="fas fa-star"></i>
+                  <span
+                    th:text="${movie.averageRating != null ? movie.averageRating : '0.0'}"
+                    >4.5</span
+                  >
                 </div>
+              </div>
 
-                <div class="movie-actions">
-                    <a th:href="@{'/movie/' + ${movie.movieId}}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-eye"></i> View
-                    </a>
-                    <a th:href="@{'/reviews/create?movieId=' + ${movie.movieId}}" class="btn btn-secondary btn-sm">
-                        <i class="fas fa-star"></i> Review
-                    </a>
-                </div>
+              <div class="movie-genre" th:if="${movie.genre != null}">
+                <span
+                  class="genre-tag"
+                  th:each="genre : ${movie.genre}"
+                  th:text="${genre}"
+                  >Action</span
+                >
+              </div>
             </div>
+
+            <div class="movie-actions">
+              <a
+                th:href="@{'/movie/' + ${movie.movieId}}"
+                class="btn btn-primary btn-sm"
+              >
+                <i class="fas fa-eye"></i> View
+              </a>
+              <a
+                th:href="@{'/reviews/create?movieId=' + ${movie.movieId}}"
+                class="btn btn-secondary btn-sm"
+              >
+                <i class="fas fa-star"></i> Review
+              </a>
+            </div>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- Empty State -->
-    <div class="empty-state" th:if="${pagedMovies == null or pagedMovies.empty}">
+      <!-- Empty State -->
+      <div
+        class="empty-state"
+        th:if="${pagedMovies == null or pagedMovies.empty}"
+      >
         <i class="fas fa-film"></i>
         <h3>No Movies Found</h3>
-        <p>We couldn't find any movies matching your criteria. Try adjusting your search filters.</p>
+        <p>
+          We couldn't find any movies matching your criteria. Try adjusting your
+          search filters.
+        </p>
         <a href="/movie/all" class="btn btn-primary">
-            <i class="fas fa-refresh"></i> Show All Movies
+          <i class="fas fa-refresh"></i> Show All Movies
         </a>
-    </div>
+      </div>
 
-    <!-- **Pagination for 25 movies per page** -->
-    <div class="pagination" th:if="${totalPages > 1}">
-        <a th:if="${page > 0}"
-           th:href="@{/movie/all(page=${page-1}, size=25, search=${searchQuery}, genre=${genreFilter}, year=${yearFilter})}"
-           class="pagination-btn">
-            <i class="fas fa-chevron-left"></i> Previous
+      <!-- **Pagination for 25 movies per page** -->
+      <div class="pagination" th:if="${totalPages > 1}">
+        <a
+          th:if="${page > 0}"
+          th:href="@{/movie/all(page=${page-1}, size=25, search=${searchQuery}, genre=${genreFilter}, year=${yearFilter})}"
+          class="pagination-btn"
+        >
+          <i class="fas fa-chevron-left"></i> Previous
         </a>
 
         <!-- Page Info -->
         <div class="page-info">
-            <span>Page <strong th:text="${page + 1}">1</strong> of <strong th:text="${totalPages}">10</strong></span>
-            <br>
-            <small style="opacity: 0.7;">25 movies per page (5×5 grid)</small>
+          <span
+            >Page <strong th:text="${page + 1}">1</strong> of
+            <strong th:text="${totalPages}">10</strong></span
+          >
+          <br />
+          <small style="opacity: 0.7">25 movies per page (5×5 grid)</small>
         </div>
 
-        <a th:if="${page < totalPages-1}"
-           th:href="@{/movie/all(page=${page+1}, size=25, search=${searchQuery}, genre=${genreFilter}, year=${yearFilter})}"
-           class="pagination-btn">
-            Next <i class="fas fa-chevron-right"></i>
+        <a
+          th:if="${page < totalPages-1}"
+          th:href="@{/movie/all(page=${page+1}, size=25, search=${searchQuery}, genre=${genreFilter}, year=${yearFilter})}"
+          class="pagination-btn"
+        >
+          Next <i class="fas fa-chevron-right"></i>
         </a>
+      </div>
     </div>
-</div>
-</body>
+  </body>
 </html>

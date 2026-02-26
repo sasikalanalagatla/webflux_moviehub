@@ -81,10 +81,14 @@ public class ReviewViewController {
                                        @RequestParam(required = false) String searchQuery) {
         logger.info("Displaying create review form with search: {}", searchQuery);
 
-        if (principal != null) {
-            model.addAttribute("currentUser", principal.getName());
-            logger.debug("User {} accessing create review form", principal.getName());
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to access create review form - user not authenticated");
+            return Mono.just("redirect:/login");
         }
+
+        model.addAttribute("currentUser", principal.getName());
+        logger.debug("User {} accessing create review form", principal.getName());
 
         // Initialize review object
         ReviewRequestDto review = new ReviewRequestDto();
@@ -92,10 +96,8 @@ public class ReviewViewController {
             review.setMovieId(movieId);
         }
 
-        // Auto-set userId if user is authenticated
-        if (principal != null) {
-            review.setUserId(principal.getName());
-        }
+        // Auto-set userId from authenticated user
+        review.setUserId(principal.getName());
 
         // Pre-calculate cancel URL
         String cancelUrl = (movieId != null && !movieId.trim().isEmpty()) ?
@@ -146,10 +148,14 @@ public class ReviewViewController {
                                      @RequestParam(required = false) String searchQuery) {
         logger.info("Attempting to create review for movie ID: {}", reviewRequestDto.getMovieId());
 
-        // Add current user to model if authenticated (for error cases)
-        if (principal != null) {
-            model.addAttribute("currentUser", principal.getName());
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to create review - user not authenticated");
+            return Mono.just("redirect:/login");
         }
+
+        // Add current user to model if authenticated (for error cases)
+        model.addAttribute("currentUser", principal.getName());
 
         if (bindingResult.hasErrors()) {
             logger.warn("Validation errors while creating review: {}", bindingResult.getAllErrors());
@@ -180,13 +186,8 @@ public class ReviewViewController {
 
         // Set userId from authenticated user if not already set
         if (reviewRequestDto.getUserId() == null || reviewRequestDto.getUserId().trim().isEmpty()) {
-            if (principal != null) {
-                reviewRequestDto.setUserId(principal.getName());
-                logger.debug("Setting userId from authenticated user: {}", principal.getName());
-            } else {
-                reviewRequestDto.setUserId("anonymous-user");
-                logger.debug("Setting userId as anonymous-user");
-            }
+            reviewRequestDto.setUserId(principal.getName());
+            logger.debug("Setting userId from authenticated user: {}", principal.getName());
         }
 
         return reviewService.createReview(reviewRequestDto)
@@ -222,11 +223,14 @@ public class ReviewViewController {
     public Mono<String> showEditForm(@PathVariable String reviewId, Model model, Principal principal) {
         logger.info("Displaying edit form for review ID: {}", reviewId);
 
-        // Add current user to model if authenticated
-        if (principal != null) {
-            model.addAttribute("currentUser", principal.getName());
-            logger.debug("User {} accessing edit form for review {}", principal.getName(), reviewId);
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to edit review {} - user not authenticated", reviewId);
+            return Mono.just("redirect:/login");
         }
+
+        model.addAttribute("currentUser", principal.getName());
+        logger.debug("User {} accessing edit form for review {}", principal.getName(), reviewId);
 
         return reviewService.getReviewById(reviewId)
                 .doOnNext(review -> {
@@ -281,10 +285,13 @@ public class ReviewViewController {
                                      BindingResult bindingResult, Model model, Principal principal) {
         logger.info("Attempting to update review ID: {}", reviewId);
 
-        // Add current user to model if authenticated (for error cases)
-        if (principal != null) {
-            model.addAttribute("currentUser", principal.getName());
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to update review {} - user not authenticated", reviewId);
+            return Mono.just("redirect:/login");
         }
+
+        model.addAttribute("currentUser", principal.getName());
 
         if (bindingResult.hasErrors()) {
             logger.warn("Validation errors while updating review {}: {}", reviewId, bindingResult.getAllErrors());
@@ -311,8 +318,15 @@ public class ReviewViewController {
     }
 
     @GetMapping("/delete/{reviewId}")
-    public Mono<String> deleteReview(@PathVariable String reviewId) {
+    public Mono<String> deleteReview(@PathVariable String reviewId, Principal principal) {
         logger.info("Attempting to delete review ID: {}", reviewId);
+
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to delete review {} - user not authenticated", reviewId);
+            return Mono.just("redirect:/reviews");
+        }
+
         return reviewService.deleteReview(reviewId)
                 .doOnSuccess(unused -> logger.info("Successfully deleted review ID: {}", reviewId))
                 .doOnError(error -> logger.error("Failed to delete review {}: {}", reviewId, error.getMessage(), error))

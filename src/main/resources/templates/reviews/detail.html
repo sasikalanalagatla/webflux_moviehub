@@ -389,7 +389,7 @@
           <li><a href="/movie/">Home</a></li>
           <li><a href="/movie/all">Movies</a></li>
           <li><a href="/reviews" class="active">Reviews</a></li>
-          <li><a href="/movie/add">Add Movie</a></li>
+          <li th:if="${isAdmin}"><a href="/movie/add">Add Movie</a></li>
         </ul>
 
         <!-- Authentication Section -->

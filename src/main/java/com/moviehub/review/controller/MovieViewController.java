@@ -32,6 +32,16 @@ public class MovieViewController {
     @Autowired
     private ReviewService reviewService;
 
+    private boolean isUserAdmin(Principal principal) {
+        if (principal == null) {
+            return false;
+        }
+        return principal instanceof org.springframework.security.core.Authentication 
+                && ((org.springframework.security.core.Authentication) principal)
+                .getAuthorities().stream()
+                .anyMatch(auth -> "ROLE_ADMIN".equals(auth.getAuthority()));
+    }
+
     @GetMapping("/")
     public Mono<String> home(Model model, Principal principal) {
         logger.info("Accessing home page");
@@ -42,7 +52,8 @@ public class MovieViewController {
         } else {
             logger.debug("Anonymous user accessing home page");
         }
-
+        
+        model.addAttribute("isAdmin", isUserAdmin(principal));
         return Mono.just("home");
     }
 
@@ -66,6 +77,8 @@ public class MovieViewController {
                         model.addAttribute("currentUser", principal.getName());
                         logger.debug("User {} accessing movie list", principal.getName());
                     }
+                    
+                    model.addAttribute("isAdmin", isUserAdmin(principal));
 
                     logger.debug("Retrieved {} total movies from database", movies.size());
 
@@ -121,10 +134,14 @@ public class MovieViewController {
     public Mono<String> showAddForm(Model model, Principal principal) {
         logger.info("Displaying add movie form");
 
-        if (principal != null) {
-            model.addAttribute("currentUser", principal.getName());
-            logger.debug("User {} accessing add movie form", principal.getName());
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to access add movie form - user not authenticated");
+            return Mono.just("redirect:/login");
         }
+
+        model.addAttribute("currentUser", principal.getName());
+        logger.debug("User {} accessing add movie form", principal.getName());
+        model.addAttribute("isAdmin", isUserAdmin(principal));
 
         model.addAttribute("movie", new MovieRequestDto());
         return Mono.just("movie-form");
@@ -134,10 +151,15 @@ public class MovieViewController {
     public Mono<String> showEditForm(@PathVariable String movieId, Model model, Principal principal) {
         logger.info("Displaying edit form for movie ID: {}", movieId);
 
-        if (principal != null) {
-            model.addAttribute("currentUser", principal.getName());
-            logger.debug("User {} accessing edit form for movie {}", principal.getName(), movieId);
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to access edit movie form - user not authenticated");
+            return Mono.just("redirect:/login");
         }
+
+        model.addAttribute("currentUser", principal.getName());
+        model.addAttribute("isAdmin", isUserAdmin(principal));
+        logger.debug("User {} accessing edit form for movie {}", principal.getName(), movieId);
 
         return movieService.getMovieById(movieId)
                 .doOnNext(movie -> {
@@ -159,6 +181,8 @@ public class MovieViewController {
             model.addAttribute("currentUser", principal.getName());
             logger.debug("User {} accessing movie details for {}", principal.getName(), movieId);
         }
+        
+        model.addAttribute("isAdmin", isUserAdmin(principal));
 
         return movieService.getMovieById(movieId)
                 .doOnNext(movie -> {
@@ -218,9 +242,13 @@ public class MovieViewController {
                                     BindingResult bindingResult, Model model, Principal principal) {
         logger.info("Attempting to create new movie: {}", movieRequestDto.getTitle());
 
-        if (principal != null) {
-            model.addAttribute("currentUser", principal.getName());
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to create movie - user not authenticated");
+            return Mono.just("redirect:/login");
         }
+
+        model.addAttribute("currentUser", principal.getName());
 
         if (bindingResult.hasErrors()) {
             logger.warn("Validation errors while creating movie: {}", bindingResult.getAllErrors());
@@ -245,9 +273,13 @@ public class MovieViewController {
                                     BindingResult bindingResult, Model model, Principal principal) {
         logger.info("Attempting to update movie ID: {}", movieId);
 
-        if (principal != null) {
-            model.addAttribute("currentUser", principal.getName());
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to update movie {} - user not authenticated", movieId);
+            return Mono.just("redirect:/login");
         }
+
+        model.addAttribute("currentUser", principal.getName());
 
         if (bindingResult.hasErrors()) {
             logger.warn("Validation errors while updating movie {}: {}", movieId, bindingResult.getAllErrors());
@@ -276,8 +308,14 @@ public class MovieViewController {
     }
 
     @PostMapping("/delete/{movieId}")
-    public Mono<String> deleteMovie(@PathVariable String movieId) {
+    public Mono<String> deleteMovie(@PathVariable String movieId, Principal principal) {
         logger.info("Attempting to delete movie ID: {}", movieId);
+
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to delete movie {} - user not authenticated", movieId);
+            return Mono.just("redirect:/login");
+        }
 
         return movieService.deleteMovie(movieId)
                 .doOnSuccess(unused -> logger.info("Successfully deleted movie ID: {}", movieId))
@@ -336,8 +374,14 @@ public class MovieViewController {
     }
 
     @PostMapping("/{movieId}/enrich")
-    public Mono<String> enrichMovieWithTmdbData(@PathVariable String movieId) {
+    public Mono<String> enrichMovieWithTmdbData(@PathVariable String movieId, Principal principal) {
         logger.info("Manually enriching movie {} with TMDb data", movieId);
+
+        // Check if user is authenticated
+        if (principal == null) {
+            logger.warn("Unauthorized attempt to enrich movie {} - user not authenticated", movieId);
+            return Mono.just("redirect:/login");
+        }
 
         return movieService.getMovieById(movieId)
                 .doOnNext(movie -> logger.debug("Found movie to enrich: {}", movie.getTitle()))
